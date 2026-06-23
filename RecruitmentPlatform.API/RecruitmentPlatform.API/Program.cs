@@ -1,4 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using RecruitmentPlatform.API.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+//Register the DbContext
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+    ));
 
 // Add services to the container.
 
