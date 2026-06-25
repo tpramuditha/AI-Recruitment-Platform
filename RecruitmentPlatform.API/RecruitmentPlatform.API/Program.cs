@@ -77,11 +77,4 @@ app.UseAuthorization();            // <-- 2nd: checks permissions
 
 app.MapControllers();
 
-// 8. Ensure database is created and migrations applied
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.EnsureCreated(); // creates DB if not exists; for migrations, use Migrate()
-}
-
 app.Run();
