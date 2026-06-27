@@ -1,25 +1,53 @@
+// src/App.jsx
 import { useState } from 'react';
-import { login } from './services/authService';
+import { useAuth } from './context/AuthContext';
+import { login as apiLogin } from './services/authService';
+import CandidatesList from './components/CandidatesList';
 
 function App() {
+  const { user, login, logout, isAuthenticated } = useAuth();
+
+  // Local state for the login form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setResult(null);
 
     try {
-      const data = await login(email, password);
-      setResult(data);
+      const data = await apiLogin(email, password);
+      // data should contain { token, user: { id, fullName, email, role } }
+      login(data.user, data.token);
     } catch (err) {
-      setError('Login failed. Check your email and password.');
+      setError('Login failed. Check your credentials.');
     }
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
+  // If logged in, show the CandidatesList and a logout button
+  if (isAuthenticated) {
+    return (
+      <div style={{ maxWidth: '800px', margin: '40px auto', fontFamily: 'sans-serif' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1>Recruitment Platform</h1>
+          <div>
+            <span>Welcome, {user.fullName} ({user.role})</span>
+            <button onClick={handleLogout} style={{ marginLeft: '16px', padding: '6px 12px' }}>
+              Logout
+            </button>
+          </div>
+        </div>
+        <CandidatesList />
+      </div>
+    );
+  }
+
+  // Otherwise, show login form
   return (
     <div style={{ maxWidth: '400px', margin: '60px auto', fontFamily: 'sans-serif' }}>
       <h1>Recruitment Platform</h1>
@@ -54,14 +82,6 @@ function App() {
       </form>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {result && (
-        <div style={{ marginTop: '20px', padding: '12px', background: '#eef', borderRadius: '4px' }}>
-          <strong>Login successful!</strong>
-          <p>Welcome, {result.user.fullName} ({result.user.role})</p>
-          <p style={{ fontSize: '11px', wordBreak: 'break-all' }}>Token: {result.token}</p>
-        </div>
-      )}
     </div>
   );
 }

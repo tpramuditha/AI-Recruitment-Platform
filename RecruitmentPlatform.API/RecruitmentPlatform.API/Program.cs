@@ -47,7 +47,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 
-// 5. CORS (optional but useful for React)
+// 5. CORS 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
