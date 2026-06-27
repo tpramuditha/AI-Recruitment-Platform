@@ -25,7 +25,7 @@ namespace RecruitmentPlatform.API.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        
-        
+        public ICollection<Job> Jobs { get; set; } = new List<Job>();
+
     }
 }

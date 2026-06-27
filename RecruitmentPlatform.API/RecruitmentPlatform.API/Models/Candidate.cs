@@ -22,5 +22,8 @@ namespace RecruitmentPlatform.API.Models
         public string? ResumeFilePath { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public ICollection<Application> Applications { get; set; } = new 
+            List<Application>();
     }
 }
