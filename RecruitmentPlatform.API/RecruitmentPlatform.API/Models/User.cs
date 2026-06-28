@@ -27,5 +27,9 @@ namespace RecruitmentPlatform.API.Models
 
         public ICollection<Job> Jobs { get; set; } = new List<Job>();
 
+   
+        public ICollection<Interview> InterviewsConducted { get; set; } = new List<Interview>();
+        public ICollection<Evaluation> EvaluationsConducted { get; set; } = new List<Evaluation>();
+
     }
 }

@@ -27,5 +27,7 @@ namespace RecruitmentPlatform.API.Models
 
         [ForeignKey("CandidateId")]
         public Candidate? Candidate { get; set; }
+        public ICollection<Interview> Interviews { get; set; } = new List<Interview>();
+        public ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
     }
 }

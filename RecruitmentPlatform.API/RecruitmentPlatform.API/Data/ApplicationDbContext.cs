@@ -14,6 +14,8 @@ namespace RecruitmentPlatform.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Job> Jobs { get; set; }
         public DbSet<Application> Applications { get; set; }
+        public DbSet<Interview> Interviews { get; set; }
+        public DbSet<Evaluation> Evaluations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +51,34 @@ namespace RecruitmentPlatform.API.Data
             modelBuilder.Entity<Application>()
                 .HasIndex(a => new { a.JobId, a.CandidateId })
                 .IsUnique(); // Prevents duplicate applications for the same job by the same candidate
+
+            // Application → Interview (one-to-many)
+            modelBuilder.Entity<Interview>()
+                .HasOne(i => i.Application)
+                .WithMany(a => a.Interviews)
+                .HasForeignKey(i => i.ApplicationId)
+                .OnDelete(DeleteBehavior.Cascade); // If application is deleted, interviews are deleted
+
+            // User → Interview (one-to-many) - Interviewer
+            modelBuilder.Entity<Interview>()
+                .HasOne(i => i.InterviewerUser)
+                .WithMany(u => u.InterviewsConducted)
+                .HasForeignKey(i => i.InterviewerUserId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent deleting a user with interviews
+
+            // Application → Evaluation (one-to-many)
+            modelBuilder.Entity<Evaluation>()
+                .HasOne(e => e.Application)
+                .WithMany(a => a.Evaluations)
+                .HasForeignKey(e => e.ApplicationId)
+                .OnDelete(DeleteBehavior.Cascade); // If application is deleted, evaluations are deleted
+
+            // User → Evaluation (one-to-many) - Evaluator
+            modelBuilder.Entity<Evaluation>()
+                .HasOne(e => e.EvaluatedByUser)
+                .WithMany(u => u.EvaluationsConducted)
+                .HasForeignKey(e => e.EvaluatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent deleting a user with evaluations
         }
 
     }
