@@ -4,13 +4,31 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using RecruitmentPlatform.API.Data;
 using RecruitmentPlatform.API.Helpers;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' followed by a space and your JWT token. Example: Bearer eyJhbGc..."
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
 
 // 2. Database (MySQL with Pomelo) – keep as is
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
