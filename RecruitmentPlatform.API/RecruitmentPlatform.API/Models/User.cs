@@ -30,6 +30,6 @@ namespace RecruitmentPlatform.API.Models
    
         public ICollection<Interview> InterviewsConducted { get; set; } = new List<Interview>();
         public ICollection<Evaluation> EvaluationsConducted { get; set; } = new List<Evaluation>();
-
+        public bool IsActive { get; set; } = true;
     }
 }
