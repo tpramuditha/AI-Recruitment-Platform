@@ -16,14 +16,35 @@ const CandidatePortalPage = () => {
     setLoading(true);
     setError('');
     try {
-      // Fetch jobs and applications in parallel
+      // Fetch AI-recommended jobs and applications in parallel
       const [jobsResponse, appsResponse] = await Promise.all([
-        apiClient.get('/Jobs'),
+        apiClient.get('/AI/jobs/recommended'),
         apiClient.get('/Applications/my')
       ]);
-      setJobs(jobsResponse.data);
-      setMyApplications(appsResponse.data);
+
+      // Extract recommendations from AI response
+      const recommendations = jobsResponse.data?.recommendations || [];
+      
+      // For each recommendation, we need the full job details from the regular Jobs endpoint
+      // Since the AI endpoint returns JobMatchResult with limited fields, 
+      // we fetch the full job data separately
+      const fullJobsResponse = await apiClient.get('/Jobs');
+      const fullJobs = fullJobsResponse.data || [];
+
+      // Merge AI scores with full job data
+      const mergedJobs = fullJobs.map(job => {
+        const match = recommendations.find(r => r.jobId === job.id);
+        return {
+          ...job,
+          matchScore: match?.matchScore || 0,
+          matchPercentage: match?.matchPercentage || '0%'
+        };
+      });
+
+      setJobs(mergedJobs);
+      setMyApplications(appsResponse.data || []);
     } catch (err) {
+      console.error('Fetch error:', err);
       setError('Failed to load data. Please refresh.');
     } finally {
       setLoading(false);
@@ -69,6 +90,28 @@ const CandidatePortalPage = () => {
     };
   };
 
+  // Get match badge color based on score
+  const getMatchBadgeStyle = (score) => {
+    let color;
+    if (score >= 70) {
+      color = '#4caf50'; // Green - Good match
+    } else if (score >= 40) {
+      color = '#ff9800'; // Yellow - Medium match
+    } else {
+      color = '#9e9e9e'; // Grey - Low match
+    }
+    return {
+      display: 'inline-block',
+      padding: '2px 10px',
+      borderRadius: '12px',
+      fontSize: '12px',
+      fontWeight: '600',
+      backgroundColor: color,
+      color: '#fff',
+      marginLeft: '8px',
+    };
+  };
+
   if (loading) {
     return <div style={styles.loading}>Loading...</div>;
   }
@@ -87,27 +130,39 @@ const CandidatePortalPage = () => {
       {error && <div style={styles.error}>{error}</div>}
       {applyMessage && <div style={styles.success}>{applyMessage}</div>}
 
-      {/* Job List */}
+      {/* Job List with AI Match Scores */}
       <section style={styles.section}>
-        <h2>Available Jobs</h2>
+        <div style={styles.sectionHeader}>
+          <h2>Recommended Jobs</h2>
+          <span style={styles.hint}>Match scores show how well your skills align with each job</span>
+        </div>
         {jobs.length === 0 ? (
           <p>No jobs available at the moment.</p>
         ) : (
           <div style={styles.jobGrid}>
             {jobs.map((job) => (
               <div key={job.id} style={styles.jobCard}>
-                <h3 style={styles.jobTitle}>{job.title}</h3>
+                <div style={styles.jobHeader}>
+                  <h3 style={styles.jobTitle}>{job.title}</h3>
+                  {job.matchScore > 0 && (
+                    <span style={getMatchBadgeStyle(job.matchScore)}>
+                      Match: {job.matchPercentage}
+                    </span>
+                  )}
+                </div>
                 <p style={styles.jobDetail}><strong>Department:</strong> {job.department}</p>
                 <p style={styles.jobDetail}><strong>Location:</strong> {job.location}</p>
                 <p style={styles.jobDetail}><strong>Type:</strong> {job.employmentType}</p>
-                <p style={styles.jobDetail}><strong>Skills:</strong> {job.requiredSkills || 'Not specified'}</p>
-                <button
-                  onClick={() => handleApply(job.id)}
-                  disabled={applyingJobId === job.id}
-                  style={styles.applyBtn}
-                >
-                  {applyingJobId === job.id ? 'Applying...' : 'Apply'}
-                </button>
+                <p style={styles.jobDetail}><strong>Required Skills:</strong> {job.requiredSkills || 'Not specified'}</p>
+                <div style={styles.jobActions}>
+                  <button
+                    onClick={() => handleApply(job.id)}
+                    disabled={applyingJobId === job.id}
+                    style={styles.applyBtn}
+                  >
+                    {applyingJobId === job.id ? 'Applying...' : 'Apply'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -185,9 +240,20 @@ const styles = {
   section: {
     marginBottom: '40px',
   },
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
+  hint: {
+    fontSize: '14px',
+    color: '#666',
+    fontStyle: 'italic',
+  },
   jobGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
     gap: '16px',
   },
   jobCard: {
@@ -195,24 +261,37 @@ const styles = {
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
     backgroundColor: '#fafafa',
+    transition: 'box-shadow 0.2s',
+  },
+  jobHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px',
   },
   jobTitle: {
-    margin: '0 0 8px 0',
+    margin: 0,
     color: '#1a1a2e',
+    fontSize: '18px',
   },
   jobDetail: {
     margin: '4px 0',
     fontSize: '14px',
     color: '#555',
   },
-  applyBtn: {
+  jobActions: {
     marginTop: '12px',
-    padding: '6px 16px',
+    display: 'flex',
+    gap: '8px',
+  },
+  applyBtn: {
+    padding: '6px 20px',
     backgroundColor: '#1a73e8',
     color: '#fff',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
+    flex: '1',
   },
   table: {
     width: '100%',

@@ -5,6 +5,7 @@ using System.Text;
 using RecruitmentPlatform.API.Data;
 using RecruitmentPlatform.API.Helpers;
 using Microsoft.OpenApi;
+using RecruitmentPlatform.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +69,7 @@ builder.Services.AddAuthentication(options =>
 // 4. Register our helpers as services (for dependency injection)
 builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<JwtTokenGenerator>();
+builder.Services.AddScoped<AIMatchingService>();// Register AI Matching Service
 
 // 5. CORS 
 builder.Services.AddCors(options =>
@@ -88,6 +90,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 
 app.UseHttpsRedirection();
 
