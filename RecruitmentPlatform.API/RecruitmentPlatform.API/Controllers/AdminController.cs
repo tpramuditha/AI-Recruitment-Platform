@@ -9,7 +9,7 @@ namespace RecruitmentPlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")] // All endpoints require Admin role
+    [Authorize]
     public class AdminController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -23,6 +23,7 @@ namespace RecruitmentPlatform.API.Controllers
 
         // GET: api/admin/users - List all users (with optional role filter)
         [HttpGet("users")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUsers([FromQuery] string? role = null)
         {
             var query = _context.Users.AsQueryable();
@@ -59,6 +60,7 @@ namespace RecruitmentPlatform.API.Controllers
 
         // PUT: api/admin/users/{id}/role - Change a user's role
         [HttpPut("users/{id}/role")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeUserRole(Guid id, [FromBody] ChangeRoleRequest request)
         {
             // Validate the new role
@@ -106,6 +108,7 @@ namespace RecruitmentPlatform.API.Controllers
 
         // DELETE: api/admin/users/{id} - Delete a user
         [HttpDelete("users/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             // Find the user
@@ -160,6 +163,7 @@ namespace RecruitmentPlatform.API.Controllers
 
         // GET: api/admin/dashboard - Analytics summary
         [HttpGet("dashboard")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetDashboard()
         {
             // Get current counts using aggregation queries (efficient, DB-side)
@@ -257,6 +261,7 @@ namespace RecruitmentPlatform.API.Controllers
 
         // GET: api/admin/applications/recent - Last 10 applications
         [HttpGet("applications/recent")]
+        [Authorize(Roles = "Admin,HiringManager")]
         public async Task<IActionResult> GetRecentApplications([FromQuery] int limit = 10)
         {
             if (limit < 1 || limit > 50)
