@@ -94,6 +94,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();     // Enable static files (for serving uploaded resumes)
+
 // 7. Middleware order – critical!
 app.UseCors("AllowReactApp");      // CORS first (optional)
 

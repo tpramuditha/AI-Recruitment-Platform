@@ -7,44 +7,30 @@ const CandidatePortalPage = () => {
   const { user, logout } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [myApplications, setMyApplications] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [applyMessage, setApplyMessage] = useState('');
 
+  // Resume upload states
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
+
   const fetchData = async () => {
     setLoading(true);
     setError('');
     try {
-      // Fetch AI-recommended jobs and applications in parallel
-      const [jobsResponse, appsResponse] = await Promise.all([
-        apiClient.get('/AI/jobs/recommended'),
-        apiClient.get('/Applications/my')
+      const [jobsResponse, appsResponse, profileResponse] = await Promise.all([
+        apiClient.get('/Jobs'),
+        apiClient.get('/Applications/my'),
+        apiClient.get('/Candidates/my-profile')
       ]);
-
-      // Extract recommendations from AI response
-      const recommendations = jobsResponse.data?.recommendations || [];
-      
-      // For each recommendation, we need the full job details from the regular Jobs endpoint
-      // Since the AI endpoint returns JobMatchResult with limited fields, 
-      // we fetch the full job data separately
-      const fullJobsResponse = await apiClient.get('/Jobs');
-      const fullJobs = fullJobsResponse.data || [];
-
-      // Merge AI scores with full job data
-      const mergedJobs = fullJobs.map(job => {
-        const match = recommendations.find(r => r.jobId === job.id);
-        return {
-          ...job,
-          matchScore: match?.matchScore || 0,
-          matchPercentage: match?.matchPercentage || '0%'
-        };
-      });
-
-      setJobs(mergedJobs);
-      setMyApplications(appsResponse.data || []);
+      setJobs(jobsResponse.data);
+      setMyApplications(appsResponse.data);
+      setProfile(profileResponse.data);
     } catch (err) {
-      console.error('Fetch error:', err);
       setError('Failed to load data. Please refresh.');
     } finally {
       setLoading(false);
@@ -55,19 +41,70 @@ const CandidatePortalPage = () => {
     fetchData();
   }, []);
 
+  // Apply to job
   const handleApply = async (jobId) => {
     setApplyingJobId(jobId);
     setApplyMessage('');
     try {
       await apiClient.post('/Applications', { jobId });
       setApplyMessage('Application submitted successfully!');
-      // Refresh data
       await fetchData();
     } catch (err) {
       const message = err.response?.data?.message || 'Failed to apply.';
       setApplyMessage(`Error: ${message}`);
     } finally {
       setApplyingJobId(null);
+    }
+  };
+
+  // Resume upload
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate extension
+      const allowedExtensions = ['.pdf', '.doc', '.docx'];
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+      if (!allowedExtensions.includes(ext)) {
+        setUploadMessage('Error: Only .pdf, .doc, .docx files are allowed.');
+        setSelectedFile(null);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setUploadMessage('Error: File size exceeds 5MB limit.');
+        setSelectedFile(null);
+        return;
+      }
+      setSelectedFile(file);
+      setUploadMessage('');
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setUploadMessage('Please select a file first.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadMessage('');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const response = await apiClient.post('/Candidates/upload-resume', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setUploadMessage(`✅ ${response.data.message}`);
+      setSelectedFile(null);
+      // Refresh profile to show new resume
+      const profileRes = await apiClient.get('/Candidates/my-profile');
+      setProfile(profileRes.data);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Upload failed.';
+      setUploadMessage(`❌ Error: ${msg}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -90,28 +127,6 @@ const CandidatePortalPage = () => {
     };
   };
 
-  // Get match badge color based on score
-  const getMatchBadgeStyle = (score) => {
-    let color;
-    if (score >= 70) {
-      color = '#4caf50'; // Green - Good match
-    } else if (score >= 40) {
-      color = '#ff9800'; // Yellow - Medium match
-    } else {
-      color = '#9e9e9e'; // Grey - Low match
-    }
-    return {
-      display: 'inline-block',
-      padding: '2px 10px',
-      borderRadius: '12px',
-      fontSize: '12px',
-      fontWeight: '600',
-      backgroundColor: color,
-      color: '#fff',
-      marginLeft: '8px',
-    };
-  };
-
   if (loading) {
     return <div style={styles.loading}>Loading...</div>;
   }
@@ -130,39 +145,81 @@ const CandidatePortalPage = () => {
       {error && <div style={styles.error}>{error}</div>}
       {applyMessage && <div style={styles.success}>{applyMessage}</div>}
 
-      {/* Job List with AI Match Scores */}
+      {/* My Profile Section */}
       <section style={styles.section}>
-        <div style={styles.sectionHeader}>
-          <h2>Recommended Jobs</h2>
-          <span style={styles.hint}>Match scores show how well your skills align with each job</span>
-        </div>
+        <h2>My Profile</h2>
+        {profile ? (
+          <div style={styles.profileCard}>
+            <div style={styles.profileRow}>
+              <span><strong>Name:</strong> {profile.fullName}</span>
+              <span><strong>Email:</strong> {profile.email}</span>
+            </div>
+            <div style={styles.profileRow}>
+              <span><strong>Phone:</strong> {profile.phoneNumber || 'Not set'}</span>
+              <span><strong>Skills:</strong> {profile.skills || 'Not set'}</span>
+            </div>
+            <div style={styles.profileRow}>
+              <span>
+                <strong>Resume:</strong> {profile.hasResume ? (
+                  <a href={`https://localhost:7241/${profile.resumeFilePath}`} target="_blank" rel="noopener noreferrer">
+                    View Resume
+                  </a>
+                ) : 'Not uploaded'}
+              </span>
+              <span><strong>Member since:</strong> {new Date(profile.createdAt).toLocaleDateString()}</span>
+            </div>
+
+            {/* Resume Upload */}
+            <div style={styles.uploadSection}>
+              <h4>Upload New Resume</h4>
+              <div style={styles.uploadRow}>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  style={styles.fileInput}
+                />
+                <button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || uploading}
+                  style={styles.uploadBtn}
+                >
+                  {uploading ? 'Uploading...' : 'Upload Resume'}
+                </button>
+              </div>
+              {uploadMessage && <p style={uploadMessage.startsWith('✅') ? styles.success : styles.error}>{uploadMessage}</p>}
+              {selectedFile && !uploading && (
+                <p style={styles.fileInfo}>Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p>No profile found. Please complete your profile.</p>
+        )}
+      </section>
+
+      {/* Job List */}
+      <section style={styles.section}>
+        <h2>Available Jobs</h2>
         {jobs.length === 0 ? (
           <p>No jobs available at the moment.</p>
         ) : (
           <div style={styles.jobGrid}>
             {jobs.map((job) => (
               <div key={job.id} style={styles.jobCard}>
-                <div style={styles.jobHeader}>
-                  <h3 style={styles.jobTitle}>{job.title}</h3>
-                  {job.matchScore > 0 && (
-                    <span style={getMatchBadgeStyle(job.matchScore)}>
-                      Match: {job.matchPercentage}
-                    </span>
-                  )}
-                </div>
+                <h3 style={styles.jobTitle}>{job.title}</h3>
                 <p style={styles.jobDetail}><strong>Department:</strong> {job.department}</p>
                 <p style={styles.jobDetail}><strong>Location:</strong> {job.location}</p>
                 <p style={styles.jobDetail}><strong>Type:</strong> {job.employmentType}</p>
-                <p style={styles.jobDetail}><strong>Required Skills:</strong> {job.requiredSkills || 'Not specified'}</p>
-                <div style={styles.jobActions}>
-                  <button
-                    onClick={() => handleApply(job.id)}
-                    disabled={applyingJobId === job.id}
-                    style={styles.applyBtn}
-                  >
-                    {applyingJobId === job.id ? 'Applying...' : 'Apply'}
-                  </button>
-                </div>
+                <p style={styles.jobDetail}><strong>Skills:</strong> {job.requiredSkills || 'Not specified'}</p>
+                <button
+                  onClick={() => handleApply(job.id)}
+                  disabled={applyingJobId === job.id}
+                  style={styles.applyBtn}
+                >
+                  {applyingJobId === job.id ? 'Applying...' : 'Apply'}
+                </button>
               </div>
             ))}
           </div>
@@ -240,20 +297,50 @@ const styles = {
   section: {
     marginBottom: '40px',
   },
-  sectionHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '16px',
+  profileCard: {
+    padding: '16px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    backgroundColor: '#fafafa',
   },
-  hint: {
+  profileRow: {
+    display: 'flex',
+    gap: '32px',
+    marginBottom: '8px',
+    flexWrap: 'wrap',
+  },
+  uploadSection: {
+    marginTop: '16px',
+    paddingTop: '16px',
+    borderTop: '1px solid #e0e0e0',
+  },
+  uploadRow: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  fileInput: {
+    padding: '6px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+  },
+  uploadBtn: {
+    padding: '6px 16px',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  fileInfo: {
+    margin: '8px 0 0 0',
     fontSize: '14px',
-    color: '#666',
-    fontStyle: 'italic',
+    color: '#555',
   },
   jobGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
     gap: '16px',
   },
   jobCard: {
@@ -261,37 +348,24 @@ const styles = {
     border: '1px solid #e0e0e0',
     borderRadius: '8px',
     backgroundColor: '#fafafa',
-    transition: 'box-shadow 0.2s',
-  },
-  jobHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '8px',
   },
   jobTitle: {
-    margin: 0,
+    margin: '0 0 8px 0',
     color: '#1a1a2e',
-    fontSize: '18px',
   },
   jobDetail: {
     margin: '4px 0',
     fontSize: '14px',
     color: '#555',
   },
-  jobActions: {
-    marginTop: '12px',
-    display: 'flex',
-    gap: '8px',
-  },
   applyBtn: {
-    padding: '6px 20px',
+    marginTop: '12px',
+    padding: '6px 16px',
     backgroundColor: '#1a73e8',
     color: '#fff',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    flex: '1',
   },
   table: {
     width: '100%',
