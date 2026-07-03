@@ -7,6 +7,7 @@ import RecruiterPortalPage from './pages/recruiter/RecruiterPortalPage';
 import ManagerPortalPage from './pages/manager/ManagerPortalPage';
 import AdminPortalPage from './pages/admin/AdminPortalPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import RegisterPage from './pages/RegisterPage';
 
 // Protected Route component
 export const ProtectedRoute = ({ children, roles }) => {
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+  path: '/register',
+  element: <RegisterPage />,
   },
   {
     path: '/unauthorized',

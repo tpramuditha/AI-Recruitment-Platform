@@ -13,29 +13,48 @@ const CandidatePortalPage = () => {
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [applyMessage, setApplyMessage] = useState('');
 
+  // Profile edit states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ fullName: '', phoneNumber: '', skills: '' });
+  const [saveMessage, setSaveMessage] = useState('');
+  const [saving, setSaving] = useState(false);
+
   // Resume upload states
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
 
   const fetchData = async () => {
-    setLoading(true);
-    setError('');
+  setLoading(true);
+  setError('');
+  try {
+    const [jobsResponse, appsResponse] = await Promise.all([
+      apiClient.get('/Jobs'),
+      apiClient.get('/Applications/my'),
+    ]);
+    setJobs(jobsResponse.data);
+    setMyApplications(appsResponse.data);
+
     try {
-      const [jobsResponse, appsResponse, profileResponse] = await Promise.all([
-        apiClient.get('/Jobs'),
-        apiClient.get('/Applications/my'),
-        apiClient.get('/Candidates/my-profile')
-      ]);
-      setJobs(jobsResponse.data);
-      setMyApplications(appsResponse.data);
+      const profileResponse = await apiClient.get('/Candidates/my-profile');
       setProfile(profileResponse.data);
-    } catch (err) {
-      setError('Failed to load data. Please refresh.');
-    } finally {
-      setLoading(false);
+      if (profileResponse.data) {
+        setEditData({
+          fullName: profileResponse.data.fullName || '',
+          phoneNumber: profileResponse.data.phoneNumber || '',
+          skills: profileResponse.data.skills || ''
+        });
+      }
+    } catch (profileErr) {
+      setProfile(null);
     }
-  };
+
+  } catch (err) {
+    setError('Failed to load data. Please refresh.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchData();
@@ -61,7 +80,6 @@ const CandidatePortalPage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate extension
       const allowedExtensions = ['.pdf', '.doc', '.docx'];
       const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
       if (!allowedExtensions.includes(ext)) {
@@ -97,14 +115,65 @@ const CandidatePortalPage = () => {
       });
       setUploadMessage(`✅ ${response.data.message}`);
       setSelectedFile(null);
-      // Refresh profile to show new resume
+      // Refresh profile
       const profileRes = await apiClient.get('/Candidates/my-profile');
       setProfile(profileRes.data);
+      // Update edit data with new resume info
     } catch (err) {
       const msg = err.response?.data?.message || 'Upload failed.';
       setUploadMessage(`❌ Error: ${msg}`);
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Profile editing
+  const handleEditChange = (e) => {
+    setEditData({ ...editData, [e.target.name]: e.target.value });
+    setSaveMessage('');
+  };
+
+  const handleStartEdit = () => {
+    if (profile) {
+      setEditData({
+        fullName: profile.fullName || '',
+        phoneNumber: profile.phoneNumber || '',
+        skills: profile.skills || ''
+      });
+      setIsEditing(true);
+      setSaveMessage('');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setSaveMessage('');
+  };
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    setSaveMessage('');
+    try {
+      const response = await apiClient.put('/Candidates/my-profile', {
+        fullName: editData.fullName,
+        phoneNumber: editData.phoneNumber,
+        skills: editData.skills
+      });
+      setProfile(response.data);
+      setIsEditing(false);
+      setSaveMessage('✅ Profile updated successfully!');
+      // Update edit data with new values
+      setEditData({
+        fullName: response.data.fullName || '',
+        phoneNumber: response.data.phoneNumber || '',
+        skills: response.data.skills || ''
+      });
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to update profile.';
+      setSaveMessage(`❌ Error: ${msg}`);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -150,24 +219,89 @@ const CandidatePortalPage = () => {
         <h2>My Profile</h2>
         {profile ? (
           <div style={styles.profileCard}>
-            <div style={styles.profileRow}>
-              <span><strong>Name:</strong> {profile.fullName}</span>
-              <span><strong>Email:</strong> {profile.email}</span>
-            </div>
-            <div style={styles.profileRow}>
-              <span><strong>Phone:</strong> {profile.phoneNumber || 'Not set'}</span>
-              <span><strong>Skills:</strong> {profile.skills || 'Not set'}</span>
-            </div>
-            <div style={styles.profileRow}>
-              <span>
-                <strong>Resume:</strong> {profile.hasResume ? (
-                  <a href={`https://localhost:7241/${profile.resumeFilePath}`} target="_blank" rel="noopener noreferrer">
-                    View Resume
-                  </a>
-                ) : 'Not uploaded'}
-              </span>
-              <span><strong>Member since:</strong> {new Date(profile.createdAt).toLocaleDateString()}</span>
-            </div>
+            {!isEditing ? (
+              // View mode
+              <div>
+                <div style={styles.profileRow}>
+                  <span><strong>Name:</strong> {profile.fullName}</span>
+                  <span><strong>Email:</strong> {profile.email}</span>
+                </div>
+                <div style={styles.profileRow}>
+                  <span><strong>Phone:</strong> {profile.phoneNumber || 'Not set'}</span>
+                  <span><strong>Skills:</strong> {profile.skills || 'Not set'}</span>
+                </div>
+                <div style={styles.profileRow}>
+                  <span>
+                    <strong>Resume:</strong> {profile.hasResume ? (
+                      <a href={`https://localhost:7241/${profile.resumeFilePath}`} target="_blank" rel="noopener noreferrer">
+                        View Resume
+                      </a>
+                    ) : 'Not uploaded'}
+                  </span>
+                  <span><strong>Member since:</strong> {new Date(profile.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div style={styles.profileActions}>
+                  <button onClick={handleStartEdit} style={styles.editBtn}>Edit Profile</button>
+                </div>
+                {saveMessage && <p style={saveMessage.startsWith('✅') ? styles.success : styles.error}>{saveMessage}</p>}
+              </div>
+            ) : (
+              // Edit mode
+              <div>
+                <div style={styles.profileRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Full Name</label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={editData.fullName}
+                      onChange={handleEditChange}
+                      style={styles.input}
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Email (read-only)</label>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      disabled
+                      style={{ ...styles.input, backgroundColor: '#f5f5f5' }}
+                    />
+                  </div>
+                </div>
+                <div style={styles.profileRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Phone Number</label>
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={editData.phoneNumber}
+                      onChange={handleEditChange}
+                      style={styles.input}
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Skills</label>
+                    <input
+                      type="text"
+                      name="skills"
+                      value={editData.skills}
+                      onChange={handleEditChange}
+                      style={styles.input}
+                      placeholder="e.g. C#, React, MySQL"
+                    />
+                    <span style={styles.hint}>Enter skills separated by commas</span>
+                  </div>
+                </div>
+                <div style={styles.profileActions}>
+                  <button onClick={handleSaveProfile} disabled={saving} style={styles.saveBtn}>
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button onClick={handleCancelEdit} style={styles.cancelBtn}>Cancel</button>
+                </div>
+                {saveMessage && <p style={saveMessage.startsWith('✅') ? styles.success : styles.error}>{saveMessage}</p>}
+              </div>
+            )}
 
             {/* Resume Upload */}
             <div style={styles.uploadSection}>
@@ -262,6 +396,7 @@ const CandidatePortalPage = () => {
   );
 };
 
+// Styles (updated with new elements)
 const styles = {
   container: {
     maxWidth: '1200px',
@@ -306,8 +441,62 @@ const styles = {
   profileRow: {
     display: 'flex',
     gap: '32px',
-    marginBottom: '8px',
+    marginBottom: '12px',
     flexWrap: 'wrap',
+  },
+  formGroup: {
+    flex: '1',
+    minWidth: '200px',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '4px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#333',
+  },
+  input: {
+    width: '100%',
+    padding: '8px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    fontSize: '14px',
+    boxSizing: 'border-box',
+  },
+  hint: {
+    display: 'block',
+    fontSize: '12px',
+    color: '#888',
+    marginTop: '4px',
+  },
+  profileActions: {
+    display: 'flex',
+    gap: '12px',
+    marginTop: '12px',
+  },
+  editBtn: {
+    padding: '6px 16px',
+    backgroundColor: '#1a73e8',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  saveBtn: {
+    padding: '6px 16px',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  cancelBtn: {
+    padding: '6px 16px',
+    backgroundColor: '#6c757d',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
   },
   uploadSection: {
     marginTop: '16px',

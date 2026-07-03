@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RecruitmentPlatform.API.Data;
 using RecruitmentPlatform.API.Models;
 using RecruitmentPlatform.API.Helpers;
-using Microsoft.EntityFrameworkCore;
 
 namespace RecruitmentPlatform.API.Controllers
 {
@@ -29,34 +29,55 @@ namespace RecruitmentPlatform.API.Controllers
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
                 return BadRequest(new { message = "Email already registered." });
 
-            // Create new user
+            // Create user
             var user = new User
             {
                 FullName = request.FullName,
                 Email = request.Email,
                 PasswordHash = _passwordHasher.HashPassword(request.Password),
-                Role = request.Role ?? "Candidate" // default to Candidate if not provided
+                Role = request.Role ?? "Candidate",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "User registered successfully", userId = user.Id });
+            // If role is Candidate, also create a Candidate profile
+            if (user.Role == "Candidate")
+            {
+                var candidate = new Candidate
+                {
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    PhoneNumber = request.PhoneNumber, 
+                    Skills = null, // Empty initially
+                    ResumeFilePath = null,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Candidates.Add(candidate);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                message = "User registered successfully",
+                userId = user.Id,
+                role = user.Role
+            });
         }
 
-        // POST: api/auth/login
+        // POST: api/auth/login (unchanged)
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user == null)
+            if (user == null || !user.IsActive)
                 return Unauthorized(new { message = "Invalid email or password." });
 
-            // Verify password
             if (!_passwordHasher.VerifyPassword(user.PasswordHash, request.Password))
                 return Unauthorized(new { message = "Invalid email or password." });
 
-            // Generate JWT token
             var token = _jwtTokenGenerator.GenerateToken(user);
 
             return Ok(new
@@ -73,13 +94,14 @@ namespace RecruitmentPlatform.API.Controllers
         }
     }
 
-    // Request DTOs (you can place them in the same file or separate DTOs folder)
+    // Updated DTOs
     public class RegisterRequest
     {
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; } 
         public string Password { get; set; } = string.Empty;
-        public string? Role { get; set; } // optional, defaults to Candidate
+        public string? Role { get; set; }
     }
 
     public class LoginRequest

@@ -151,9 +151,43 @@ namespace RecruitmentPlatform.API.Controllers
         }
 
         // =====================  Get My Profile =====================
+
+        // GET: api/Candidates/my-profile
         [HttpGet("my-profile")]
         [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> GetMyProfile()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized(new { message = "User not authenticated." });
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            var candidate = await _context.Candidates
+                .FirstOrDefaultAsync(c => c.Email == user.Email);
+            if (candidate == null)
+                return BadRequest(new { message = "Candidate profile not found." });
+
+            return Ok(new
+            {
+                candidate.Id,
+                candidate.FullName,
+                candidate.Email,
+                candidate.PhoneNumber,
+                candidate.Skills,
+                candidate.ResumeFilePath,
+                HasResume = !string.IsNullOrEmpty(candidate.ResumeFilePath),
+                candidate.CreatedAt
+            });
+        }
+
+        // PUT: api/Candidates/my-profile
+        [HttpPut("my-profile")]
+        [Authorize(Roles = "Candidate")]
+        public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileRequest request)
         {
             // 1. Get logged-in user
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -168,11 +202,22 @@ namespace RecruitmentPlatform.API.Controllers
             // 2. Find candidate by email
             var candidate = await _context.Candidates
                 .FirstOrDefaultAsync(c => c.Email == user.Email);
-
             if (candidate == null)
-                return Ok(new { message = "No candidate profile found. Please create one." });
+                return BadRequest(new { message = "Candidate profile not found." });
 
-            // 3. Return flattened profile
+            // 3. Update allowed fields
+            if (!string.IsNullOrWhiteSpace(request.FullName))
+                candidate.FullName = request.FullName;
+
+            // PhoneNumber can be null
+            candidate.PhoneNumber = request.PhoneNumber;
+
+            if (!string.IsNullOrWhiteSpace(request.Skills))
+                candidate.Skills = request.Skills;
+
+            await _context.SaveChangesAsync();
+
+            // 4. Return updated profile (flattened)
             return Ok(new
             {
                 candidate.Id,
@@ -184,6 +229,15 @@ namespace RecruitmentPlatform.API.Controllers
                 HasResume = !string.IsNullOrEmpty(candidate.ResumeFilePath),
                 candidate.CreatedAt
             });
+        }
+
+
+        // Request DTO for update
+        public class UpdateProfileRequest
+        {
+            public string? FullName { get; set; }
+            public string? PhoneNumber { get; set; }
+            public string? Skills { get; set; }
         }
     }
 }

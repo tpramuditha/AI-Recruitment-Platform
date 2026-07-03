@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { login as apiLogin } from '../services/authService';
 import { getRedirectPath } from '../routes';
@@ -71,7 +71,7 @@ const LoginPage = () => {
         {error && <p style={styles.error}>{error}</p>}
 
         <div style={styles.registerLink}>
-          <p>Don't have an account? <a href="/register" style={styles.link}>Register here</a></p>
+          <p>Don't have an account? <Link to="/register" style={styles.link}>Register here</Link></p>
           <p style={styles.hint}>Demo: test@example.com / Test123!</p>
         </div>
       </div>
