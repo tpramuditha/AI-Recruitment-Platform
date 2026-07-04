@@ -13,7 +13,14 @@ const RecruiterPortalPage = () => {
   const [applicants, setApplicants] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form state
+  // Interview states
+  const [showInterviewForm, setShowInterviewForm] = useState(null); // applicationId or null
+  const [interviewData, setInterviewData] = useState({});
+  const [interviewMessage, setInterviewMessage] = useState({});
+  const [fetchingInterviews, setFetchingInterviews] = useState({});
+  const [interviewsData, setInterviewsData] = useState({});
+
+  // Form state for job posting
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -71,6 +78,8 @@ const RecruiterPortalPage = () => {
     try {
       const response = await apiClient.get(`/Applications/job/${jobId}`);
       setApplicants(response.data);
+      // Clear any previously fetched interviews for this job
+      setInterviewsData({});
     } catch (err) {
       setApplicants([]);
     }
@@ -79,18 +88,149 @@ const RecruiterPortalPage = () => {
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
       await apiClient.put(`/Applications/${applicationId}/status`, { status: newStatus });
-      // Refresh applicants
       await handleViewApplicants(selectedJobId);
     } catch (err) {
       alert('Failed to update status.');
     }
   };
 
-  const getJobApplicants = (jobId) => {
-    if (selectedJobId === jobId) {
-      return applicants;
+  // Interview handlers
+  const handleInterviewInputChange = (applicationId, field, value) => {
+    setInterviewData({
+      ...interviewData,
+      [applicationId]: {
+        ...interviewData[applicationId],
+        [field]: value,
+      },
+    });
+  };
+
+  const handleScheduleInterview = async (applicationId) => {
+    const data = interviewData[applicationId];
+    if (!data || !data.scheduledAt || !data.interviewerUserId) {
+      setInterviewMessage({
+        ...interviewMessage,
+        [applicationId]: { type: 'error', text: 'Please fill in Date/Time and Interviewer ID.' }
+      });
+      return;
     }
-    return null;
+
+    setSubmitting(true);
+    setInterviewMessage({ ...interviewMessage, [applicationId]: null });
+
+    try {
+      await apiClient.post('/Interviews', {
+        applicationId: applicationId,
+        scheduledAt: data.scheduledAt,
+        durationMinutes: parseInt(data.durationMinutes) || 60,
+        interviewerUserId: data.interviewerUserId,
+        notes: data.notes || '',
+      });
+
+      setInterviewMessage({
+        ...interviewMessage,
+        [applicationId]: { type: 'success', text: '✅ Interview scheduled successfully!' }
+      });
+
+      // Clear form for this application
+      setInterviewData({
+        ...interviewData,
+        [applicationId]: {}
+      });
+
+      // Refresh interviews for this application
+      await fetchInterviews(applicationId);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setInterviewMessage(prev => ({ ...prev, [applicationId]: null }));
+      }, 3000);
+
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to schedule interview.';
+      setInterviewMessage({
+        ...interviewMessage,
+        [applicationId]: { type: 'error', text: `❌ ${msg}` }
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const fetchInterviews = async (applicationId) => {
+    setFetchingInterviews({ ...fetchingInterviews, [applicationId]: true });
+    try {
+      const response = await apiClient.get(`/Interviews/application/${applicationId}`);
+      setInterviewsData({
+        ...interviewsData,
+        [applicationId]: response.data || []
+      });
+    } catch (err) {
+      setInterviewsData({
+        ...interviewsData,
+        [applicationId]: []
+      });
+    } finally {
+      setFetchingInterviews({ ...fetchingInterviews, [applicationId]: false });
+    }
+  };
+
+  const handleMarkComplete = async (interviewId, applicationId) => {
+    try {
+      await apiClient.put(`/Interviews/${interviewId}`, { status: 'Completed' });
+      // Refresh interviews for this application
+      await fetchInterviews(applicationId);
+    } catch (err) {
+      alert('Failed to mark interview as completed.');
+    }
+  };
+
+  const toggleInterviewForm = (applicationId) => {
+    if (showInterviewForm === applicationId) {
+      setShowInterviewForm(null);
+    } else {
+      setShowInterviewForm(applicationId);
+      // Fetch interviews when opening the form
+      if (!interviewsData[applicationId]) {
+        fetchInterviews(applicationId);
+      }
+    }
+  };
+
+  const getStatusBadgeStyle = (status) => {
+    const colors = {
+      'Submitted': '#2196f3',
+      'UnderReview': '#ff9800',
+      'Shortlisted': '#4caf50',
+      'Rejected': '#f44336',
+      'Hired': '#1b5e20',
+    };
+    return {
+      display: 'inline-block',
+      padding: '2px 10px',
+      borderRadius: '12px',
+      fontSize: '12px',
+      fontWeight: '500',
+      backgroundColor: colors[status] || '#999',
+      color: '#fff',
+    };
+  };
+
+  const getInterviewStatusBadgeStyle = (status) => {
+    const colors = {
+      'Scheduled': '#1a73e8',
+      'Completed': '#4caf50',
+      'Cancelled': '#f44336',
+    };
+    return {
+      display: 'inline-block',
+      padding: '2px 10px',
+      borderRadius: '12px',
+      fontSize: '12px',
+      fontWeight: '500',
+      backgroundColor: colors[status] || '#999',
+      color: '#fff',
+    };
   };
 
   if (loading) {
@@ -225,26 +365,20 @@ const RecruiterPortalPage = () => {
                   {applicants.length === 0 ? (
                     <p>No applicants yet.</p>
                   ) : (
-                    <table style={styles.table}>
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Status</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {applicants.map((app) => (
-                          <tr key={app.id}>
-                            <td>{app.candidateName || 'Unknown'}</td>
-                            <td>{app.candidateEmail || 'N/A'}</td>
-                            <td>
+                    <div>
+                      {applicants.map((app) => (
+                        <div key={app.id} style={styles.applicantCard}>
+                          <div style={styles.applicantHeader}>
+                            <div>
+                              <strong>{app.candidateName || 'Unknown'}</strong>
+                              <span style={{ marginLeft: '12px', color: '#555' }}>
+                                {app.candidateEmail || 'N/A'}
+                              </span>
+                            </div>
+                            <div style={styles.applicantActions}>
                               <span style={getStatusBadgeStyle(app.status)}>
                                 {app.status}
                               </span>
-                            </td>
-                            <td>
                               <select
                                 value={app.status}
                                 onChange={(e) => handleStatusChange(app.id, e.target.value)}
@@ -256,11 +390,140 @@ const RecruiterPortalPage = () => {
                                 <option value="Rejected">Rejected</option>
                                 <option value="Hired">Hired</option>
                               </select>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                              <button
+                                onClick={() => toggleInterviewForm(app.id)}
+                                style={styles.interviewBtn}
+                              >
+                                {showInterviewForm === app.id ? 'Hide Interview' : 'Schedule Interview'}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Interview Form */}
+                          {showInterviewForm === app.id && (
+                            <div style={styles.interviewSection}>
+                              <div style={styles.interviewForm}>
+                                <h5>Schedule Interview</h5>
+                                <div style={styles.interviewRow}>
+                                  <div style={styles.interviewGroup}>
+                                    <label>Date & Time *</label>
+                                    <input
+                                      type="datetime-local"
+                                      value={interviewData[app.id]?.scheduledAt || ''}
+                                      onChange={(e) => handleInterviewInputChange(app.id, 'scheduledAt', e.target.value)}
+                                      style={styles.interviewInput}
+                                    />
+                                  </div>
+                                  <div style={styles.interviewGroup}>
+                                    <label>Duration (minutes)</label>
+                                    <input
+                                      type="number"
+                                      value={interviewData[app.id]?.durationMinutes || 60}
+                                      onChange={(e) => handleInterviewInputChange(app.id, 'durationMinutes', e.target.value)}
+                                      style={styles.interviewInput}
+                                      min="15"
+                                      step="5"
+                                    />
+                                  </div>
+                                </div>
+                                <div style={styles.interviewRow}>
+                                  <div style={styles.interviewGroup}>
+                                    <label>Interviewer User ID *</label>
+                                    <input
+                                      type="text"
+                                      value={interviewData[app.id]?.interviewerUserId || ''}
+                                      onChange={(e) => handleInterviewInputChange(app.id, 'interviewerUserId', e.target.value)}
+                                      style={styles.interviewInput}
+                                      placeholder="Enter HiringManager's GUID"
+                                    />
+                                  </div>
+                                </div>
+                                <div style={styles.interviewRow}>
+                                  <div style={styles.interviewGroup}>
+                                    <label>Notes</label>
+                                    <textarea
+                                      value={interviewData[app.id]?.notes || ''}
+                                      onChange={(e) => handleInterviewInputChange(app.id, 'notes', e.target.value)}
+                                      style={styles.interviewTextarea}
+                                      rows={2}
+                                      placeholder="Optional notes for the interview"
+                                    />
+                                  </div>
+                                </div>
+                                <div style={styles.interviewActions}>
+                                  <button
+                                    onClick={() => handleScheduleInterview(app.id)}
+                                    disabled={submitting}
+                                    style={styles.confirmInterviewBtn}
+                                  >
+                                    {submitting ? 'Scheduling...' : 'Confirm Schedule'}
+                                  </button>
+                                  <button
+                                    onClick={() => toggleInterviewForm(app.id)}
+                                    style={styles.cancelInterviewBtn}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                                {interviewMessage[app.id] && (
+                                  <p style={interviewMessage[app.id].type === 'success' ? styles.success : styles.error}>
+                                    {interviewMessage[app.id].text}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Existing Interviews */}
+                              <div style={styles.existingInterviews}>
+                                <h5>Existing Interviews</h5>
+                                {fetchingInterviews[app.id] ? (
+                                  <p>Loading interviews...</p>
+                                ) : interviewsData[app.id] && interviewsData[app.id].length > 0 ? (
+                                  <table style={styles.interviewTable}>
+                                    <thead>
+                                      <tr>
+                                        <th>Date/Time</th>
+                                        <th>Duration</th>
+                                        <th>Interviewer</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                        <th>Action</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {interviewsData[app.id].map((interview) => (
+                                        <tr key={interview.id}>
+                                          <td>{new Date(interview.scheduledAt).toLocaleString()}</td>
+                                          <td>{interview.durationMinutes} min</td>
+                                          <td>{interview.interviewerName || 'Unknown'}</td>
+                                          <td>
+                                            <span style={getInterviewStatusBadgeStyle(interview.status)}>
+                                              {interview.status}
+                                            </span>
+                                          </td>
+                                          <td>{interview.notes || '-'}</td>
+                                          <td>
+                                            {interview.status !== 'Completed' && interview.status !== 'Cancelled' && (
+                                              <button
+                                                onClick={() => handleMarkComplete(interview.id, app.id)}
+                                                style={styles.completeBtn}
+                                              >
+                                                Mark Complete
+                                              </button>
+                                            )}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                ) : (
+                                  <p>No interviews scheduled yet.</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
@@ -272,53 +535,279 @@ const RecruiterPortalPage = () => {
   );
 };
 
-// Helper function for status badges
-const getStatusBadgeStyle = (status) => {
-  const colors = {
-    'Submitted': '#2196f3',
-    'UnderReview': '#ff9800',
-    'Shortlisted': '#4caf50',
-    'Rejected': '#f44336',
-    'Hired': '#1b5e20',
-  };
-  return {
-    display: 'inline-block',
+// Styles
+const styles = {
+  container: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '20px',
+    fontFamily: 'sans-serif',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: '20px',
+    borderBottom: '1px solid #eee',
+    marginBottom: '24px',
+  },
+  title: {
+    margin: 0,
+    color: '#1a1a2e',
+  },
+  userInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  logoutBtn: {
+    padding: '6px 16px',
+    backgroundColor: '#dc3545',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  section: {
+    marginBottom: '40px',
+  },
+  sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
+  primaryBtn: {
+    padding: '8px 16px',
+    backgroundColor: '#1a73e8',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  secondaryBtn: {
+    padding: '6px 12px',
+    backgroundColor: '#6c757d',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginTop: '8px',
+  },
+  submitBtn: {
+    padding: '10px 20px',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '16px',
+  },
+  form: {
+    padding: '16px',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    marginBottom: '20px',
+    backgroundColor: '#f9f9f9',
+  },
+  formRow: {
+    display: 'flex',
+    gap: '16px',
+    marginBottom: '12px',
+  },
+  formGroup: {
+    flex: '1',
+    marginBottom: '12px',
+  },
+  input: {
+    width: '100%',
+    padding: '8px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    boxSizing: 'border-box',
+  },
+  textarea: {
+    width: '100%',
+    padding: '8px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    boxSizing: 'border-box',
+    fontFamily: 'sans-serif',
+  },
+  jobCard: {
+    padding: '16px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    marginBottom: '12px',
+    backgroundColor: '#fafafa',
+  },
+  jobHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  jobTitle: {
+    margin: '0 0 8px 0',
+  },
+  jobDetail: {
+    margin: '4px 0',
+    fontSize: '14px',
+    color: '#555',
+  },
+  activeBadge: {
     padding: '2px 10px',
     borderRadius: '12px',
     fontSize: '12px',
-    fontWeight: '500',
-    backgroundColor: colors[status] || '#999',
+    backgroundColor: '#4caf50',
     color: '#fff',
-  };
-};
-
-const styles = {
-  container: { maxWidth: '1200px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px', borderBottom: '1px solid #eee', marginBottom: '24px' },
-  title: { margin: 0, color: '#1a1a2e' },
-  userInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
-  logoutBtn: { padding: '6px 16px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
-  section: { marginBottom: '40px' },
-  sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
-  primaryBtn: { padding: '8px 16px', backgroundColor: '#1a73e8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
-  secondaryBtn: { padding: '6px 12px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '8px' },
-  submitBtn: { padding: '10px 20px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px' },
-  form: { padding: '16px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '20px', backgroundColor: '#f9f9f9' },
-  formRow: { display: 'flex', gap: '16px', marginBottom: '12px' },
-  formGroup: { flex: '1', marginBottom: '12px' },
-  input: { width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', boxSizing: 'border-box' },
-  textarea: { width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', boxSizing: 'border-box', fontFamily: 'sans-serif' },
-  jobCard: { padding: '16px', border: '1px solid #e0e0e0', borderRadius: '8px', marginBottom: '12px', backgroundColor: '#fafafa' },
-  jobHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  jobTitle: { margin: '0 0 8px 0' },
-  jobDetail: { margin: '4px 0', fontSize: '14px', color: '#555' },
-  activeBadge: { padding: '2px 10px', borderRadius: '12px', fontSize: '12px', backgroundColor: '#4caf50', color: '#fff' },
-  inactiveBadge: { padding: '2px 10px', borderRadius: '12px', fontSize: '12px', backgroundColor: '#f44336', color: '#fff' },
-  applicantsSection: { marginTop: '12px', padding: '12px', backgroundColor: '#fff', border: '1px solid #e0e0e0', borderRadius: '4px' },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  statusSelect: { padding: '4px 8px', borderRadius: '4px', border: '1px solid #ddd' },
-  error: { padding: '12px', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '4px', marginBottom: '16px' },
-  loading: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontSize: '18px', fontFamily: 'sans-serif' },
+  },
+  inactiveBadge: {
+    padding: '2px 10px',
+    borderRadius: '12px',
+    fontSize: '12px',
+    backgroundColor: '#f44336',
+    color: '#fff',
+  },
+  applicantsSection: {
+    marginTop: '12px',
+    padding: '12px',
+    backgroundColor: '#fff',
+    border: '1px solid #e0e0e0',
+    borderRadius: '4px',
+  },
+  applicantCard: {
+    padding: '12px',
+    border: '1px solid #eee',
+    borderRadius: '4px',
+    marginBottom: '8px',
+    backgroundColor: '#fafafa',
+  },
+  applicantHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '8px',
+  },
+  applicantActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  statusSelect: {
+    padding: '4px 8px',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+  },
+  interviewBtn: {
+    padding: '4px 12px',
+    backgroundColor: '#1a73e8',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '12px',
+  },
+  interviewSection: {
+    marginTop: '12px',
+    padding: '12px',
+    backgroundColor: '#fff',
+    border: '1px solid #e0e0e0',
+    borderRadius: '4px',
+  },
+  interviewForm: {
+    paddingBottom: '12px',
+    borderBottom: '1px solid #eee',
+    marginBottom: '12px',
+  },
+  interviewRow: {
+    display: 'flex',
+    gap: '12px',
+    marginBottom: '8px',
+    flexWrap: 'wrap',
+  },
+  interviewGroup: {
+    flex: '1',
+    minWidth: '180px',
+  },
+  interviewInput: {
+    width: '100%',
+    padding: '6px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    boxSizing: 'border-box',
+    fontSize: '13px',
+  },
+  interviewTextarea: {
+    width: '100%',
+    padding: '6px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    boxSizing: 'border-box',
+    fontFamily: 'sans-serif',
+    fontSize: '13px',
+  },
+  interviewActions: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '8px',
+  },
+  confirmInterviewBtn: {
+    padding: '6px 16px',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  cancelInterviewBtn: {
+    padding: '6px 16px',
+    backgroundColor: '#6c757d',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  existingInterviews: {
+    marginTop: '8px',
+  },
+  interviewTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: '13px',
+  },
+  completeBtn: {
+    padding: '2px 10px',
+    backgroundColor: '#4caf50',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '11px',
+  },
+  error: {
+    padding: '12px',
+    backgroundColor: '#ffebee',
+    color: '#c62828',
+    borderRadius: '4px',
+    marginBottom: '16px',
+  },
+  success: {
+    padding: '12px',
+    backgroundColor: '#e8f5e9',
+    color: '#2e7d32',
+    borderRadius: '4px',
+    marginBottom: '16px',
+  },
+  loading: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    fontSize: '18px',
+    fontFamily: 'sans-serif',
+  },
 };
 
 export default RecruiterPortalPage;
