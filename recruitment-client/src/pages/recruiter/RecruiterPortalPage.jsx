@@ -5,6 +5,9 @@ import apiClient from '../../services/apiClient';
 
 const RecruiterPortalPage = () => {
   const { user, logout } = useAuth();
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,6 +85,9 @@ const RecruiterPortalPage = () => {
 
   const handleViewApplicants = async (jobId) => {
     setSelectedJobId(jobId);
+    // Reset search and filter when viewing a new job's applicants
+    setSearchTerm(''); 
+    setStatusFilter('All');
     try {
       const response = await apiClient.get(`/Applications/job/${jobId}`);
       setApplicants(response.data);
@@ -286,6 +292,20 @@ const handleAiRanking = async (jobId) => {
   };
  };
 
+  // Filter applicants based on search term and status filter
+  const filteredApplicants = applicants.filter((app) => {
+  // Search filter: match candidateName or candidateEmail (case-insensitive)
+  const searchLower = searchTerm.toLowerCase();
+  const nameMatch = app.candidateName?.toLowerCase().includes(searchLower) || false;
+  const emailMatch = app.candidateEmail?.toLowerCase().includes(searchLower) || false;
+  const searchMatch = searchTerm === '' || nameMatch || emailMatch;
+
+  // Status filter
+  const statusMatch = statusFilter === 'All' || app.status === statusFilter;
+
+  return searchMatch && statusMatch;
+ });
+
 
   if (loading) {
     return <div style={styles.loading}>Loading...</div>;
@@ -417,6 +437,50 @@ const handleAiRanking = async (jobId) => {
                 <div style={styles.applicantsSection}>
                   <h4>Applicants</h4>
 
+                  {/* Search and Filter */}
+                <div style={styles.filterSection}>
+                  <div style={styles.filterRow}>
+                    <div style={styles.searchGroup}>
+                      <input
+                        type="text"
+                        placeholder="Search by name or email..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={styles.searchInput}
+                      />
+                    </div>
+                  <div style={styles.filterGroup}>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      style={styles.filterSelect}
+                    >
+                      <option value="All">All Status</option>
+                      <option value="Submitted">Submitted</option>
+                      <option value="UnderReview">Under Review</option>
+                      <option value="Shortlisted">Shortlisted</option>
+                      <option value="Rejected">Rejected</option>
+                      <option value="Hired">Hired</option>
+                    </select>
+                  </div>
+               </div>
+              <div style={styles.filterCount}>
+                Showing {filteredApplicants.length} of {applicants.length} applicants
+             </div>
+            </div>
+
+            <div style={styles.filterGroup}>
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('All');
+                }}
+                style={styles.clearFiltersBtn}
+              >
+                Clear Filters
+              </button>
+            </div>
+
                   {/* AI Ranking Section */}
 <div style={styles.aiRankingSection}>
   <button
@@ -466,11 +530,11 @@ const handleAiRanking = async (jobId) => {
 </div>
 
 
-                  {applicants.length === 0 ? (
-                    <p>No applicants yet.</p>
+                  {filteredApplicants.length === 0 ? (
+                    <p>{applicants.length === 0 ? 'No applicants yet.' : 'No applicants match your filters.'}</p>
                   ) : (
                     <div>
-                      {applicants.map((app) => (
+                      {filteredApplicants.map((app) => (
                         <div key={app.id} style={styles.applicantCard}>
                           <div style={styles.applicantHeader}>
                             <div>
@@ -986,6 +1050,62 @@ rankedScore: {
   minWidth: '60px',
   textAlign: 'right',
 },
+
+filterSection: {
+  marginBottom: '16px',
+  padding: '12px',
+  backgroundColor: '#f9f9f9',
+  borderRadius: '4px',
+  border: '1px solid #e0e0e0',
+},
+filterRow: {
+  display: 'flex',
+  gap: '12px',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+},
+searchGroup: {
+  flex: '2',
+  minWidth: '200px',
+},
+searchInput: {
+  width: '100%',
+  padding: '8px 12px',
+  border: '1px solid #ddd',
+  borderRadius: '4px',
+  fontSize: '14px',
+  boxSizing: 'border-box',
+},
+filterGroup: {
+  flex: '1',
+  minWidth: '150px',
+},
+filterSelect: {
+  width: '100%',
+  padding: '8px 12px',
+  border: '1px solid #ddd',
+  borderRadius: '4px',
+  fontSize: '14px',
+  backgroundColor: '#fff',
+  boxSizing: 'border-box',
+  cursor: 'pointer',
+},
+filterCount: {
+  marginTop: '8px',
+  fontSize: '13px',
+  color: '#666',
+},
+clearFiltersBtn: {
+  padding: '8px 16px',
+  backgroundColor: '#6c757d',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '13px',
+  whiteSpace: 'nowrap',
+},
+
 };
 
 export default RecruiterPortalPage;

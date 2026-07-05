@@ -29,6 +29,11 @@ const CandidatePortalPage = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
 
+  const [extractedSkillsFromUpload, setExtractedSkillsFromUpload] = useState('');
+  const [showUseAiSkillsButton, setShowUseAiSkillsButton] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+
   const fetchData = async () => {
   setLoading(true);
   setError('');
@@ -116,19 +121,65 @@ const CandidatePortalPage = () => {
 
     try {
       const response = await apiClient.post('/Candidates/upload-resume', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setUploadMessage(`✅ ${response.data.message}`);
+    
+      const data = response.data;
+    
+      // Build success message with AI extraction info
+      let successMsg = `✅ ${data.message}`;
+      if (data.extractionMessage) {
+        successMsg += `\n${data.extractionMessage}`;
+      }
+    
+      setUploadMessage(successMsg);
       setSelectedFile(null);
-      // Refresh profile
+    
+      // Refresh profile to show new resume and updated skills
       const profileRes = await apiClient.get('/Candidates/my-profile');
       setProfile(profileRes.data);
-      // Update edit data with new resume info
+    
+      // If skills were auto-updated, update edit data too
+      if (data.skillsAutoUpdated && profileRes.data.skills) {
+        setEditData({
+          ...editData,
+          skills: profileRes.data.skills
+        });
+      }
+    
+      // If extracted skills but not auto-updated, show "Use AI skills" option
+      if (data.extractedSkills && !data.skillsAutoUpdated && data.extractedSkills !== 'No skills identified') {
+        setExtractedSkillsFromUpload(data.extractedSkills);
+        setShowUseAiSkillsButton(true);
+      }
+    
+      // Clear file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = '';
+
     } catch (err) {
       const msg = err.response?.data?.message || 'Upload failed.';
       setUploadMessage(`❌ Error: ${msg}`);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleUseAiSkills = () => {
+    if (extractedSkillsFromUpload) {
+      setEditData({
+        ...editData,
+        skills: extractedSkillsFromUpload
+      });
+      setShowUseAiSkillsButton(false);
+      setExtractedSkillsFromUpload('');
+      setUploadMessage('✅ AI-extracted skills applied to your profile!');
+      // Refresh profile to show updated skills
+      const refreshProfile = async () => {
+        const profileRes = await apiClient.get('/Candidates/my-profile');
+        setProfile(profileRes.data);
+      };
+      refreshProfile();
     }
   };
 
@@ -377,13 +428,14 @@ const handleApplyExtractedSkills = () => {
               )}
            </div>
 
+            
             {/* Resume Upload */}
             <div style={styles.uploadSection}>
               <h4>Upload New Resume</h4>
               <div style={styles.uploadRow}>
                 <input
                   type="file"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf,.doc,.docx,.txt"
                   onChange={handleFileChange}
                   disabled={uploading}
                   style={styles.fileInput}
@@ -396,7 +448,32 @@ const handleApplyExtractedSkills = () => {
                   {uploading ? 'Uploading...' : 'Upload Resume'}
                 </button>
               </div>
-              {uploadMessage && <p style={uploadMessage.startsWith('✅') ? styles.success : styles.error}>{uploadMessage}</p>}
+  
+              {/* Upload message with AI extraction info */}
+              {uploadMessage && (
+                <div style={{
+                  ...(uploadMessage.startsWith('✅') || uploadMessage.startsWith('🤖') ? styles.success : styles.error),
+                  whiteSpace: 'pre-line'
+                }}>
+                  {uploadMessage}
+                </div>
+              )}
+  
+              {/* "Use AI skills" button */}
+              {showUseAiSkillsButton && extractedSkillsFromUpload && (
+                <div style={styles.aiSkillsAction}>
+                  <p style={styles.aiSkillsHint}>
+                    💡 AI extracted: <strong>{extractedSkillsFromUpload}</strong>
+                  </p>
+                  <button
+                    onClick={handleUseAiSkills}
+                    style={styles.useAiSkillsBtn}
+                  >
+                    Use AI-extracted skills instead
+                  </button>
+                </div>
+              )}
+  
               {selectedFile && !uploading && (
                 <p style={styles.fileInfo}>Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)</p>
               )}
@@ -714,6 +791,28 @@ skillTag: {
   backgroundColor: '#1a73e8',
   color: '#fff',
   borderRadius: '16px',
+  fontSize: '13px',
+},
+
+aiSkillsAction: {
+  marginTop: '12px',
+  padding: '12px',
+  backgroundColor: '#e3f2fd',
+  borderRadius: '4px',
+  border: '1px solid #90caf9',
+},
+aiSkillsHint: {
+  margin: '0 0 8px 0',
+  fontSize: '14px',
+  color: '#0d47a1',
+},
+useAiSkillsBtn: {
+  padding: '6px 16px',
+  backgroundColor: '#1a73e8',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
   fontSize: '13px',
 },
 };

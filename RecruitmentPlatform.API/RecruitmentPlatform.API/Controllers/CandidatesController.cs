@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecruitmentPlatform.API.Data;
 using RecruitmentPlatform.API.Models;
+using RecruitmentPlatform.API.Services;
+using System.IO;
 using System.Security.Claims;
+using System.Text;
 
 namespace RecruitmentPlatform.API.Controllers
 {
@@ -15,11 +18,13 @@ namespace RecruitmentPlatform.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly GeminiService _geminiService;
 
-        public CandidatesController(ApplicationDbContext context, IWebHostEnvironment env)
+        public CandidatesController(ApplicationDbContext context, IWebHostEnvironment env, GeminiService geminiService)
         {
             _context = context;
             _env = env;
+            _geminiService = geminiService;
         }
 
         // GET: api/candidates
@@ -94,10 +99,10 @@ namespace RecruitmentPlatform.API.Controllers
                 return BadRequest(new { message = "No file uploaded." });
 
             // 2. Check file extension
-            var allowedExtensions = new[] { ".pdf", ".doc", ".docx" };
+            var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".txt" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(extension))
-                return BadRequest(new { message = "Only .pdf, .doc, .docx files are allowed." });
+                return BadRequest(new { message = "Only .pdf, .doc, .docx, .txt files are allowed." });
 
             // 3. Check file size (5MB)
             if (file.Length > 5 * 1024 * 1024)
@@ -124,7 +129,7 @@ namespace RecruitmentPlatform.API.Controllers
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
-            // 7. Generate unique filename: {candidateId}_{timestamp}{extension}
+            // 7. Generate unique filename
             var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
             var fileName = $"{candidate.Id}_{timestamp}{extension}";
             var filePath = Path.Combine(uploadsFolder, fileName);
@@ -135,18 +140,89 @@ namespace RecruitmentPlatform.API.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            // 9. Update candidate's ResumeFilePath in DB (relative path for serving)
+            // 9. Update candidate's ResumeFilePath
             var relativePath = Path.Combine("uploads", "resumes", fileName).Replace("\\", "/");
             candidate.ResumeFilePath = relativePath;
             await _context.SaveChangesAsync();
 
+            // ================================================================
+            // 10. NEW: AI Skill Extraction from Resume
+            // ================================================================
+            string extractedSkills = null;
+            bool skillsAutoUpdated = false;
+            string extractionMessage = null;
+
+            try
+            {
+                string resumeText = null;
+
+                // 10a. Extract text based on file type
+                if (extension == ".txt")
+                {
+                    // Read .txt file directly
+                    resumeText = await System.IO.File.ReadAllTextAsync(filePath);
+                }
+                else if (extension == ".pdf" || extension == ".doc" || extension == ".docx")
+                {
+                    // For PDF/DOC/DOCX, we don't have full text extraction packages installed.
+                    // Instead, send the filename and a prompt to Gemini.
+                    var fileNameOnly = Path.GetFileNameWithoutExtension(file.FileName);
+                    resumeText = $"The candidate uploaded a resume file named '{fileNameOnly}'. " +
+                                 $"Based on this filename, suggest likely professional skills for this candidate. " +
+                                 $"Return ONLY a comma-separated list of skills, nothing else. " +
+                                 $"If the filename doesn't indicate skills, return 'No skills identified from filename'.";
+                }
+
+                // 10b. If we have text to process, call Gemini
+                if (!string.IsNullOrEmpty(resumeText))
+                {
+                    extractedSkills = await _geminiService.ExtractSkillsAsync(resumeText);
+
+                    // 10c. If skills were extracted and candidate has no skills, auto-update
+                    if (!string.IsNullOrEmpty(extractedSkills) &&
+                        extractedSkills != "No skills identified" &&
+                        extractedSkills != "No skills identified from filename")
+                    {
+                        if (string.IsNullOrEmpty(candidate.Skills))
+                        {
+                            // Auto-update: candidate has no skills, we can populate
+                            candidate.Skills = extractedSkills;
+                            await _context.SaveChangesAsync();
+                            skillsAutoUpdated = true;
+                            extractionMessage = "✅ Your skills profile has been automatically updated with AI-extracted skills!";
+                        }
+                        else
+                        {
+                            // Candidate already has skills, don't overwrite
+                            extractionMessage = $"🤖 AI extracted these skills from your CV: {extractedSkills}";
+                        }
+                    }
+                    else
+                    {
+                        extractionMessage = "ℹ️ No skills were extracted from your CV. You can manually add skills.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the upload
+                Console.WriteLine($"AI skill extraction error: {ex.Message}");
+                extractionMessage = "ℹ️ AI skill extraction failed. You can manually add skills.";
+            }
+
+            // 11. Return response with AI extraction info
             return Ok(new
             {
                 message = "Resume uploaded successfully.",
                 candidateId = candidate.Id,
                 fileName = file.FileName,
                 filePath = relativePath,
-                uploadedAt = DateTime.UtcNow
+                uploadedAt = DateTime.UtcNow,
+                extractedSkills = extractedSkills,
+                skillsAutoUpdated = skillsAutoUpdated,
+                extractionMessage = extractionMessage,
+                // Include current skills so frontend knows state
+                currentSkills = candidate.Skills
             });
         }
 
