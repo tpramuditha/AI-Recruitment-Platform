@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecruitmentPlatform.API.Data;
-using RecruitmentPlatform.API.Models;
 using RecruitmentPlatform.API.Services;
 using System.Security.Claims;
 
@@ -10,177 +9,275 @@ namespace RecruitmentPlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // All AI endpoints require authentication
     public class AIController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly AIMatchingService _matchingService;
+        private readonly AIMatchingService _aiService;
+        private readonly GeminiService _geminiService;
 
-        public AIController(ApplicationDbContext context, AIMatchingService matchingService)
+        public AIController(ApplicationDbContext context, AIMatchingService aiService, GeminiService geminiService)
         {
             _context = context;
-            _matchingService = matchingService;
+            _aiService = aiService;
+            _geminiService = geminiService;
         }
 
-        // GET: api/ai/jobs/recommended - Get job recommendations for logged-in candidate
+        // GET: api/AI/jobs/recommended
         [HttpGet("jobs/recommended")]
         [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> GetRecommendedJobs()
         {
-            // Get logged-in user's ID from JWT
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
-                return Unauthorized(new { message = "User not authenticated." });
+                return Unauthorized();
 
             var userId = Guid.Parse(userIdClaim.Value);
-
-            // Get the user to find their email
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return NotFound(new { message = "User not found." });
 
-            // Get the candidate profile (matched by email)
             var candidate = await _context.Candidates
                 .FirstOrDefaultAsync(c => c.Email == user.Email);
 
             if (candidate == null)
-                return NotFound(new { message = "Candidate profile not found. Please complete your profile." });
+                return Ok(new { message = "No candidate profile found.", recommendations = new List<object>() });
 
-            // Get all active jobs
-            var jobs = await _context.Jobs
-                .Where(j => j.IsActive)
-                .ToListAsync();
-
-            if (!jobs.Any())
-                return Ok(new { message = "No active jobs available.", recommendations = new List<JobMatchResult>() });
-
-            // Rank jobs for the candidate
-            var recommendations = _matchingService.RankJobsForCandidate(candidate, jobs);
-
-            return Ok(new
+            try
             {
-                candidateId = candidate.Id,
-                candidateName = candidate.FullName,
-                totalJobsConsidered = jobs.Count,
-                recommendations = recommendations,
-                topMatch = recommendations.FirstOrDefault()
-            });
+                // Try async AI version
+                var recommendations = await _aiService.RankJobsForCandidateAsync(candidate.Id);
+                return Ok(new
+                {
+                    candidateId = candidate.Id,
+                    totalJobs = recommendations.Count,
+                    recommendations = recommendations
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AI matching error: {ex.Message}");
+                // Fallback to sync version
+                var recommendations = _aiService.RankJobsForCandidateSync(candidate.Id);
+                return Ok(new
+                {
+                    candidateId = candidate.Id,
+                    totalJobs = recommendations.Count,
+                    recommendations = recommendations,
+                    note = "Using fallback matching (AI service unavailable)"
+                });
+            }
         }
 
-        // GET: api/ai/candidates/ranked/{jobId} - Rank candidates who applied to a job
+        // GET: api/AI/candidates/ranked/{jobId}
         [HttpGet("candidates/ranked/{jobId}")]
         [Authorize(Roles = "Recruiter,HiringManager,Admin")]
-        public async Task<IActionResult> GetRankedCandidatesForJob(int jobId)
+        public async Task<IActionResult> GetRankedCandidates(int jobId)
         {
-            // Get the job
             var job = await _context.Jobs.FindAsync(jobId);
             if (job == null)
                 return NotFound(new { message = "Job not found." });
 
-            // Get all applications for this job
-            var applications = await _context.Applications
-                .Include(a => a.Candidate)
-                .Where(a => a.JobId == jobId)
-                .ToListAsync();
-
-            if (!applications.Any())
-                return Ok(new { message = "No applicants for this job.", candidates = new List<CandidateRankResult>() });
-
-            // Get candidates from applications
-            var candidates = applications
-                .Where(a => a.Candidate != null)
-                .Select(a => a.Candidate!)
-                .ToList();
-
-            // Rank candidates
-            var rankedCandidates = _matchingService.RankCandidatesForJob(job, candidates);
-
-            return Ok(new
+            try
             {
-                jobId = job.Id,
-                jobTitle = job.Title,
-                totalApplicants = candidates.Count,
-                matchedCandidates = rankedCandidates.Count,
-                candidates = rankedCandidates
-            });
+                var rankedCandidates = await _aiService.RankCandidatesForJobAsync(jobId);
+                return Ok(new
+                {
+                    jobId = jobId,
+                    jobTitle = job.Title,
+                    totalCandidates = rankedCandidates.Count,
+                    rankedCandidates = rankedCandidates
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AI matching error: {ex.Message}");
+                var rankedCandidates = _aiService.RankCandidatesForJobSync(jobId);
+                return Ok(new
+                {
+                    jobId = jobId,
+                    jobTitle = job.Title,
+                    totalCandidates = rankedCandidates.Count,
+                    rankedCandidates = rankedCandidates,
+                    note = "Using fallback matching (AI service unavailable)"
+                });
+            }
         }
 
-        // GET: api/ai/match-score?candidateId={candidateId}&jobId={jobId}
+        // GET: api/AI/match-score
         [HttpGet("match-score")]
         [Authorize(Roles = "Recruiter,HiringManager,Admin")]
         public async Task<IActionResult> GetMatchScore([FromQuery] int candidateId, [FromQuery] int jobId)
         {
-            // Get candidate
             var candidate = await _context.Candidates.FindAsync(candidateId);
             if (candidate == null)
                 return NotFound(new { message = "Candidate not found." });
 
-            // Get job
             var job = await _context.Jobs.FindAsync(jobId);
             if (job == null)
                 return NotFound(new { message = "Job not found." });
 
-            // Calculate match score
-            var score = _matchingService.GetMatchScore(candidate, job);
-
-            return Ok(new MatchScoreResult
+            try
             {
-                CandidateId = candidate.Id,
-                CandidateName = candidate.FullName,
-                JobId = job.Id,
-                JobTitle = job.Title,
-                MatchScore = score,
-                MatchPercentage = $"{score}%"
-            });
+                var score = await _aiService.CalculateMatchScoreAsync(
+                    candidate.Skills ?? "",
+                    job.RequiredSkills ?? ""
+                );
+
+                return Ok(new
+                {
+                    candidateId = candidateId,
+                    candidateName = candidate.FullName,
+                    jobId = jobId,
+                    jobTitle = job.Title,
+                    matchScore = score,
+                    matchPercentage = $"{score:F0}%"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AI matching error: {ex.Message}");
+                var score = _aiService.CalculateMatchScore(
+                    candidate.Skills ?? "",
+                    job.RequiredSkills ?? ""
+                );
+                return Ok(new
+                {
+                    candidateId = candidateId,
+                    candidateName = candidate.FullName,
+                    jobId = jobId,
+                    jobTitle = job.Title,
+                    matchScore = score,
+                    matchPercentage = $"{score:F0}%",
+                    note = "Using fallback matching (AI service unavailable)"
+                });
+            }
         }
 
-        // GET: api/ai/candidates/ranked/application/{applicationId} 
-        // Rank candidates for a specific application (alternative method)
+        // GET: api/AI/candidates/ranked/application/{applicationId}
         [HttpGet("candidates/ranked/application/{applicationId}")]
         [Authorize(Roles = "Recruiter,HiringManager,Admin")]
-        public async Task<IActionResult> GetRankedCandidatesForApplication(int applicationId)
+        public async Task<IActionResult> GetRankedCandidatesByApplication(int applicationId)
         {
-            // Get the application
             var application = await _context.Applications
                 .Include(a => a.Job)
-                .Include(a => a.Candidate)
                 .FirstOrDefaultAsync(a => a.Id == applicationId);
 
             if (application == null)
                 return NotFound(new { message = "Application not found." });
 
-            // Get all applications for the same job
-            var allApplications = await _context.Applications
-                .Include(a => a.Candidate)
-                .Where(a => a.JobId == application.JobId)
-                .ToListAsync();
+            if (application.Job == null)
+                return NotFound(new { message = "Job not found for this application." });
 
-            if (!allApplications.Any())
-                return Ok(new { message = "No other applicants for this job.", candidates = new List<CandidateRankResult>() });
-
-            // Get all candidates for this job
-            var candidates = allApplications
-                .Where(a => a.Candidate != null)
-                .Select(a => a.Candidate!)
-                .ToList();
-
-            // Rank candidates
-            var rankedCandidates = _matchingService.RankCandidatesForJob(application.Job!, candidates);
-
-            // Find the rank of the specific candidate
-            var candidateRank = rankedCandidates
-                .Select((c, index) => new { c.CandidateId, Rank = index + 1 })
-                .FirstOrDefault(c => c.CandidateId == application.CandidateId);
-
-            return Ok(new
+            try
             {
-                jobId = application.JobId,
-                jobTitle = application.Job?.Title ?? "Unknown",
-                totalApplicants = candidates.Count,
-                matchedCandidates = rankedCandidates.Count,
-                currentCandidateRank = candidateRank?.Rank ?? -1,
-                candidates = rankedCandidates
-            });
+                var rankedCandidates = await _aiService.RankCandidatesForJobAsync(application.JobId);
+                return Ok(new
+                {
+                    applicationId = applicationId,
+                    jobId = application.JobId,
+                    jobTitle = application.Job.Title,
+                    totalCandidates = rankedCandidates.Count,
+                    rankedCandidates = rankedCandidates
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AI matching error: {ex.Message}");
+                var rankedCandidates = _aiService.RankCandidatesForJobSync(application.JobId);
+                return Ok(new
+                {
+                    applicationId = applicationId,
+                    jobId = application.JobId,
+                    jobTitle = application.Job.Title,
+                    totalCandidates = rankedCandidates.Count,
+                    rankedCandidates = rankedCandidates,
+                    note = "Using fallback matching (AI service unavailable)"
+                });
+            }
         }
+
+        // NEW: GET: api/AI/feedback/{applicationId}
+        [HttpGet("feedback/{applicationId}")]
+        [Authorize(Roles = "Recruiter,HiringManager,Admin")]
+        public async Task<IActionResult> GetFeedback(int applicationId)
+        {
+            var application = await _context.Applications
+                .Include(a => a.Candidate)
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.Id == applicationId);
+
+            if (application == null)
+                return NotFound(new { message = "Application not found." });
+
+            if (application.Candidate == null || application.Job == null)
+                return NotFound(new { message = "Candidate or Job not found for this application." });
+
+            try
+            {
+                // Get match score first
+                var matchScore = await _aiService.CalculateMatchScoreAsync(
+                    application.Candidate.Skills ?? "",
+                    application.Job.RequiredSkills ?? ""
+                );
+
+                var feedback = await _geminiService.GenerateFeedbackAsync(
+                    application.Candidate.FullName,
+                    application.Job.Title,
+                    matchScore
+                );
+
+                return Ok(new
+                {
+                    applicationId = applicationId,
+                    candidateName = application.Candidate.FullName,
+                    jobTitle = application.Job.Title,
+                    matchScore = matchScore,
+                    matchPercentage = $"{matchScore:F0}%",
+                    feedback = feedback,
+                    generatedAt = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Feedback generation error: {ex.Message}");
+                return StatusCode(500, new { message = "Failed to generate feedback.", error = ex.Message });
+            }
+        }
+
+        // NEW: POST: api/AI/extract-skills
+        [HttpPost("extract-skills")]
+        [Authorize(Roles = "Candidate")]
+        public async Task<IActionResult> ExtractSkills([FromBody] ExtractSkillsRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.ProfileText))
+                return BadRequest(new { message = "Profile text is required." });
+
+            try
+            {
+                var skills = await _geminiService.ExtractSkillsAsync(request.ProfileText);
+
+                // Update the candidate's skills if they want (optional)
+                // But we'll let the frontend decide whether to apply
+
+                return Ok(new
+                {
+                    extractedSkills = skills,
+                    skillList = skills.Split(',')
+                        .Select(s => s.Trim())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Skill extraction error: {ex.Message}");
+                return StatusCode(500, new { message = "Failed to extract skills.", error = ex.Message });
+            }
+        }
+    }
+
+    public class ExtractSkillsRequest
+    {
+        public string ProfileText { get; set; } = string.Empty;
     }
 }

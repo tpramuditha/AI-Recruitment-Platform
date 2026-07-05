@@ -69,6 +69,12 @@ builder.Services.AddAuthentication(options =>
 // 4. Register our helpers as services (for dependency injection)
 builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<JwtTokenGenerator>();
+
+builder.Services.AddHttpClient<GeminiService>(client =>   // Register Gemini Service
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 builder.Services.AddScoped<AIMatchingService>();// Register AI Matching Service
 
 // 5. CORS 

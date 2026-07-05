@@ -13,6 +13,13 @@ const RecruiterPortalPage = () => {
   const [applicants, setApplicants] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // AI Ranking states
+  const [showAiRanking, setShowAiRanking] = useState(false);
+  const [aiRankingData, setAiRankingData] = useState(null);
+  const [loadingAiRanking, setLoadingAiRanking] = useState(false);
+  const [aiRankingError, setAiRankingError] = useState('');
+
+
   // Interview states
   const [showInterviewForm, setShowInterviewForm] = useState(null); // applicationId or null
   const [interviewData, setInterviewData] = useState({});
@@ -93,6 +100,29 @@ const RecruiterPortalPage = () => {
       alert('Failed to update status.');
     }
   };
+
+  // AI Ranking handler
+const handleAiRanking = async (jobId) => {
+  if (showAiRanking) {
+    setShowAiRanking(false);
+    return;
+  }
+
+  setShowAiRanking(true);
+  setLoadingAiRanking(true);
+  setAiRankingError('');
+  setAiRankingData(null);
+
+  try {
+    const response = await apiClient.get(`/AI/candidates/ranked/${jobId}`);
+    setAiRankingData(response.data);
+  } catch (err) {
+    setAiRankingError('Failed to load AI ranking. Please try again.');
+    setAiRankingData(null);
+  } finally {
+    setLoadingAiRanking(false);
+  }
+};
 
   // Interview handlers
   const handleInterviewInputChange = (applicationId, field, value) => {
@@ -233,6 +263,30 @@ const RecruiterPortalPage = () => {
     };
   };
 
+  const getMatchScoreBadgeStyle = (score) => {
+  let color = '';
+  let textColor = '#fff';
+  
+  if (score >= 70) {
+    color = '#4caf50'; // Green
+  } else if (score >= 40) {
+    color = '#ff9800'; // Orange
+  } else {
+    color = '#9e9e9e'; // Grey
+  }
+
+  return {
+    display: 'inline-block',
+    padding: '2px 10px',
+    borderRadius: '12px',
+    fontSize: '12px',
+    fontWeight: '500',
+    backgroundColor: color,
+    color: textColor,
+  };
+ };
+
+
   if (loading) {
     return <div style={styles.loading}>Loading...</div>;
   }
@@ -362,6 +416,56 @@ const RecruiterPortalPage = () => {
               {selectedJobId === job.id && (
                 <div style={styles.applicantsSection}>
                   <h4>Applicants</h4>
+
+                  {/* AI Ranking Section */}
+<div style={styles.aiRankingSection}>
+  <button
+    onClick={() => handleAiRanking(selectedJobId)}
+    style={styles.aiRankingBtn}
+  >
+    {showAiRanking ? 'Hide AI Ranking' : 'Show AI Ranking'}
+  </button>
+
+  {showAiRanking && (
+    <div style={styles.aiRankingContent}>
+      {loadingAiRanking ? (
+        <p style={styles.loadingText}>Calculating AI ranking...</p>
+      ) : aiRankingError ? (
+        <p style={styles.error}>{aiRankingError}</p>
+      ) : aiRankingData && aiRankingData.rankedCandidates && aiRankingData.rankedCandidates.length > 0 ? (
+        <div>
+          <p style={styles.aiRankingInfo}>
+            <strong>{aiRankingData.totalCandidates}</strong> candidates ranked for 
+            <strong> {aiRankingData.jobTitle}</strong>
+          </p>
+          {aiRankingData.rankedCandidates.map((candidate, index) => (
+            <div key={candidate.candidateId} style={styles.rankedCandidate}>
+              <div style={styles.rankNumber}>#{index + 1}</div>
+              <div style={styles.rankedInfo}>
+                <div style={styles.rankedName}>{candidate.fullName || 'Unknown'}</div>
+                <div style={styles.rankedEmail}>{candidate.email || 'N/A'}</div>
+                <div style={styles.rankedSkills}>
+                  <strong>Skills:</strong> {candidate.skills || 'Not specified'}
+                </div>
+              </div>
+              <div style={styles.rankedScore}>
+                <span style={getMatchScoreBadgeStyle(candidate.matchScore)}>
+                  {candidate.matchPercentage || '0%'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={styles.noRankingData}>
+          No ranking data available. Candidates may need to update their skills.
+        </p>
+      )}
+    </div>
+  )}
+</div>
+
+
                   {applicants.length === 0 ? (
                     <p>No applicants yet.</p>
                   ) : (
@@ -808,6 +912,80 @@ const styles = {
     fontSize: '18px',
     fontFamily: 'sans-serif',
   },
+
+  aiRankingSection: {
+  marginTop: '16px',
+  padding: '12px',
+  backgroundColor: '#f5f5f5',
+  borderRadius: '4px',
+},
+aiRankingBtn: {
+  padding: '6px 16px',
+  backgroundColor: '#9c27b0',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '14px',
+},
+aiRankingContent: {
+  marginTop: '12px',
+  padding: '12px',
+  backgroundColor: '#fff',
+  borderRadius: '4px',
+  border: '1px solid #e0e0e0',
+},
+aiRankingInfo: {
+  margin: '0 0 12px 0',
+  fontSize: '14px',
+  color: '#333',
+},
+loadingText: {
+  color: '#666',
+  fontSize: '14px',
+  textAlign: 'center',
+  padding: '20px 0',
+},
+noRankingData: {
+  color: '#999',
+  fontSize: '14px',
+  textAlign: 'center',
+  padding: '20px 0',
+},
+rankedCandidate: {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '10px',
+  borderBottom: '1px solid #eee',
+  gap: '16px',
+},
+rankNumber: {
+  fontWeight: 'bold',
+  fontSize: '16px',
+  color: '#555',
+  minWidth: '40px',
+},
+rankedInfo: {
+  flex: '1',
+},
+rankedName: {
+  fontWeight: '500',
+  fontSize: '15px',
+  color: '#1a1a2e',
+},
+rankedEmail: {
+  fontSize: '13px',
+  color: '#666',
+},
+rankedSkills: {
+  fontSize: '13px',
+  color: '#555',
+  marginTop: '2px',
+},
+rankedScore: {
+  minWidth: '60px',
+  textAlign: 'right',
+},
 };
 
 export default RecruiterPortalPage;

@@ -12,6 +12,11 @@ const CandidatePortalPage = () => {
   const [error, setError] = useState('');
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [applyMessage, setApplyMessage] = useState('');
+  const [extractorText, setExtractorText] = useState('');
+  const [extractingSkills, setExtractingSkills] = useState(false);
+  const [extractedSkills, setExtractedSkills] = useState('');
+  const [extractedSkillList, setExtractedSkillList] = useState([]);
+  const [extractError, setExtractError] = useState(''); 
 
   // Profile edit states
   const [isEditing, setIsEditing] = useState(false);
@@ -200,6 +205,35 @@ const CandidatePortalPage = () => {
     return <div style={styles.loading}>Loading...</div>;
   }
 
+  const handleExtractSkills = async () => {
+  if (!extractorText.trim()) return;
+  setExtractingSkills(true);
+  setExtractError('');
+  setExtractedSkills('');
+  setExtractedSkillList([]);
+  try {
+    const response = await apiClient.post('/AI/extract-skills', {
+      profileText: extractorText
+    });
+    setExtractedSkills(response.data.extractedSkills);
+    setExtractedSkillList(response.data.skillList || []);
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to extract skills.';
+    setExtractError(msg);
+  } finally {
+    setExtractingSkills(false);
+  }
+};
+
+const handleApplyExtractedSkills = () => {
+  if (extractedSkills) {
+    setEditData({ ...editData, skills: extractedSkills });
+    setExtractorText('');
+    setExtractedSkills('');
+    setExtractedSkillList([]);
+  }
+};
+
   return (
     <div style={styles.container}>
       {/* Header */}
@@ -302,6 +336,46 @@ const CandidatePortalPage = () => {
                 {saveMessage && <p style={saveMessage.startsWith('✅') ? styles.success : styles.error}>{saveMessage}</p>}
               </div>
             )}
+
+            {/* AI Skill Extractor */}
+            <div style={styles.aiExtractorSection}>
+              <h4>AI Skill Extractor</h4>
+              <p style={styles.hint}>Paste your CV or profile text to auto-extract skills</p>
+              <div style={styles.extractorRow}>
+                <textarea
+                  value={extractorText}
+                  onChange={(e) => setExtractorText(e.target.value)}
+                  placeholder="Paste your CV text here..."
+                  rows={4}
+                  style={styles.extractorTextarea}
+                />
+             </div>
+             <div style={styles.extractorActions}>
+                <button
+                   onClick={handleExtractSkills}
+                   disabled={!extractorText || extractingSkills}
+                   style={styles.extractorBtn}
+                >
+                  {extractingSkills ? 'Extracting...' : '🤖 Extract Skills with AI'}
+                </button>
+                {extractedSkills && (
+                   <button onClick={handleApplyExtractedSkills} style={styles.applyExtractedBtn}>
+                      Use These Skills
+                   </button>
+                 )}
+              </div>
+              {extractError && <p style={styles.error}>{extractError}</p>}
+              {extractedSkills && (
+                 <div style={styles.extractedSkillsResult}>
+                 <p><strong>Extracted Skills:</strong></p>
+                 <div style={styles.skillTags}>
+                   {extractedSkillList.map((skill, index) => (
+                     <span key={index} style={styles.skillTag}>{skill}</span>
+                   ))}
+                 </div>
+               </div>
+              )}
+           </div>
 
             {/* Resume Upload */}
             <div style={styles.uploadSection}>
@@ -582,6 +656,66 @@ const styles = {
     fontSize: '18px',
     fontFamily: 'sans-serif',
   },
+
+  aiExtractorSection: {
+  marginTop: '16px',
+  paddingTop: '16px',
+  borderTop: '1px solid #e0e0e0',
+},
+extractorRow: { marginBottom: '8px' },
+extractorTextarea: {
+  width: '100%',
+  padding: '10px',
+  border: '1px solid #ddd',
+  borderRadius: '4px',
+  boxSizing: 'border-box',
+  fontFamily: 'sans-serif',
+  fontSize: '14px',
+  resize: 'vertical',
+},
+extractorActions: {
+  display: 'flex',
+  gap: '12px',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+},
+extractorBtn: {
+  padding: '8px 20px',
+  backgroundColor: '#9c27b0',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '14px',
+},
+applyExtractedBtn: {
+  padding: '8px 20px',
+  backgroundColor: '#28a745',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '14px',
+},
+extractedSkillsResult: {
+  marginTop: '12px',
+  padding: '12px',
+  backgroundColor: '#f5f5f5',
+  borderRadius: '4px',
+},
+skillTags: {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+  marginTop: '8px',
+},
+skillTag: {
+  padding: '4px 12px',
+  backgroundColor: '#1a73e8',
+  color: '#fff',
+  borderRadius: '16px',
+  fontSize: '13px',
+},
 };
 
 export default CandidatePortalPage;
