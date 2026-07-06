@@ -1,11 +1,12 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.OpenApi;
 using RecruitmentPlatform.API.Data;
 using RecruitmentPlatform.API.Helpers;
-using Microsoft.OpenApi;
+using RecruitmentPlatform.API.Middleware;
 using RecruitmentPlatform.API.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,6 +108,8 @@ app.UseCors("AllowReactApp");      // CORS first (optional)
 
 app.UseAuthentication();           // <-- 1st: reads JWT from header
 app.UseAuthorization();            // <-- 2nd: checks permissions
+
+app.UseAuditLogging();
 
 app.MapControllers();
 

@@ -295,6 +295,45 @@ namespace RecruitmentPlatform.API.Controllers
                 applications = recentApplications
             });
         }
+
+        // GET: api/Admin/audit-logs
+        [HttpGet("audit-logs")]
+        public async Task<IActionResult> GetAuditLogs([FromQuery] string? endpoint = null, [FromQuery] int limit = 50)
+        {
+            if (limit < 1 || limit > 100)
+                return BadRequest(new { message = "Limit must be between 1 and 100." });
+
+            var query = _context.AuditLogs.AsQueryable();
+
+            if (!string.IsNullOrEmpty(endpoint))
+            {
+                query = query.Where(log => log.Endpoint.Contains(endpoint));
+            }
+
+            var logs = await query
+                .OrderByDescending(log => log.Timestamp)
+                .Take(limit)
+                .Select(log => new
+                {
+                    log.Id,
+                    log.UserId,
+                    log.UserEmail,
+                    log.UserRole,
+                    log.Action,
+                    log.Endpoint,
+                    log.StatusCode,
+                    log.IpAddress,
+                    log.Timestamp,
+                    log.Details
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                total = logs.Count,
+                logs = logs
+            });
+        }
     }
 
     // ===================== REQUEST DTOs =====================

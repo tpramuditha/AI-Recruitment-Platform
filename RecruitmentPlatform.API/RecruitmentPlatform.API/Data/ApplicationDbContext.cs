@@ -16,6 +16,7 @@ namespace RecruitmentPlatform.API.Data
         public DbSet<Application> Applications { get; set; }
         public DbSet<Interview> Interviews { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
