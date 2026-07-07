@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecruitmentPlatform.API.Data;
 using RecruitmentPlatform.API.Models;
+using RecruitmentPlatform.API.Services;
 using System.Security.Claims;
+using RecruitmentPlatform.API.Services;
 
 namespace RecruitmentPlatform.API.Controllers
 {
@@ -12,10 +14,14 @@ namespace RecruitmentPlatform.API.Controllers
     public class ApplicationsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<ApplicationsController> _logger;
 
-        public ApplicationsController(ApplicationDbContext context)
+        public ApplicationsController(ApplicationDbContext context, IEmailService emailService, ILogger<ApplicationsController> logger)
         {
             _context = context;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         // POST: api/applications (Candidate applies to a job)
@@ -163,6 +169,7 @@ namespace RecruitmentPlatform.API.Controllers
         public async Task<IActionResult> UpdateApplicationStatus(int id, [FromBody] UpdateStatusRequest request)
         {
             var application = await _context.Applications
+                .Include(a => a.Candidate)
                 .Include(a => a.Job)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
@@ -189,7 +196,45 @@ namespace RecruitmentPlatform.API.Controllers
             application.Status = request.Status;
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = $"Application status updated to '{request.Status}'.", application });
+            // ---------- EMAIL NOTIFICATION ----------
+            bool emailSent = false;
+            try
+            {
+                // Get candidate email & name
+                var candidateEmail = application.Candidate?.Email;
+                var candidateName = application.Candidate?.FullName ?? "Candidate";
+                var jobTitle = application.Job?.Title ?? "your application";
+
+                // Get recruiter's name from claims (fallback if not present)
+                var recruiterName = User.FindFirst(ClaimTypes.Name)?.Value ?? "Recruitment Team";
+
+                if (!string.IsNullOrEmpty(candidateEmail))
+                {
+                    await _emailService.SendApplicationStatusEmailAsync(
+                        candidateEmail,
+                        candidateName,
+                        jobTitle,
+                        request.Status,
+                        recruiterName);
+                    emailSent = true;
+                }
+                else
+                {
+                    _logger.LogWarning($"Candidate email is missing for application {id}. Email not sent.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but do not rethrow – we still want a 200 OK
+                _logger.LogError(ex, $"Failed to send email for application {id} status update.");
+                Console.WriteLine($"Email error: {ex.Message}");
+            }
+
+            return Ok(new { message = $"Application status updated to '{request.Status}'.",
+                applicationId = application.Id,
+                newStatus = application.Status,
+                emailSent = emailSent
+            });
         }
     }
 

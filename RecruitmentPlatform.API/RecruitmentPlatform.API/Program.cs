@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.Win32;
 using RecruitmentPlatform.API.Data;
 using RecruitmentPlatform.API.Helpers;
 using RecruitmentPlatform.API.Middleware;
 using RecruitmentPlatform.API.Services;
 using System.Text;
+using RecruitmentPlatform.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +79,9 @@ builder.Services.AddHttpClient<GeminiService>(client =>   // Register Gemini Ser
 });
 
 builder.Services.AddScoped<AIMatchingService>();// Register AI Matching Service
+
+// Register Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // 5. CORS 
 builder.Services.AddCors(options =>
