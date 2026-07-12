@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../services/apiClient';
+import CalendarView from '../../components/CalendarView';
 
 const ManagerPortalPage = () => {
   const { user, logout } = useAuth();
@@ -196,6 +197,12 @@ const ManagerPortalPage = () => {
             </div>
           ))
         )}
+      </section>
+
+      {/* Interview Calendar */}
+      <section style={styles.section}>
+        <h2>My Interview Schedule</h2>
+        <CalendarView role="HiringManager" />
       </section>
     </div>
   );

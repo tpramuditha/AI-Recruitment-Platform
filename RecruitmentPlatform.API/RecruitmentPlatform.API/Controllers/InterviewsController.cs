@@ -142,6 +142,66 @@ namespace RecruitmentPlatform.API.Controllers
             return Ok(interviews);
         }
 
+        // GET: api/interviews/calendar
+        [HttpGet("calendar")]
+        [Authorize]
+        public async Task<IActionResult> GetCalendarInterviews()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            IQueryable<Interview> query = _context.Interviews
+                .Include(i => i.Application)
+                    .ThenInclude(a => a.Candidate)
+                .Include(i => i.Application)
+                    .ThenInclude(a => a.Job)
+                .Include(i => i.InterviewerUser)
+                .Where(i => i.Status != "Cancelled"); // Only active interviews
+
+            // Role-based filtering
+            if (userRole == "Candidate")
+            {
+                // Find candidate by email
+                var user = await _context.Users.FindAsync(userId);
+                var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.Email == user.Email);
+                if (candidate == null)
+                    return Ok(new List<object>());
+
+                query = query.Where(i => i.Application.CandidateId == candidate.Id);
+            }
+            else if (userRole == "Recruiter")
+            {
+                // Show interviews for jobs posted by this recruiter
+                query = query.Where(i => i.Application.Job.PostedByUserId == userId);
+            }
+            else if (userRole == "HiringManager")
+            {
+                // Show interviews where this user is the interviewer
+                query = query.Where(i => i.InterviewerUserId == userId);
+            }
+            // Admin sees all
+
+            var interviews = await query
+                .Select(i => new
+                {
+                    i.Id,
+                    i.ScheduledAt,
+                    i.DurationMinutes,
+                    i.Status,
+                    CandidateName = i.Application.Candidate.FullName,
+                    JobTitle = i.Application.Job.Title,
+                    InterviewerName = i.InterviewerUser.FullName,
+                    InterviewerId = i.InterviewerUserId
+                })
+                .ToListAsync();
+
+            return Ok(interviews);
+        }
+
         // PUT: api/interviews/{id} (Update interview status/notes)
         [HttpPut("{id}")]
         [Authorize(Roles = "Recruiter,HiringManager,Admin")]

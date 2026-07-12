@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../services/apiClient';
+import CalendarView from '../../components/CalendarView';
 
 const RecruiterPortalPage = () => {
   const { user, logout } = useAuth();
@@ -486,52 +487,52 @@ const handleAiRanking = async (jobId) => {
             </div>
 
                   {/* AI Ranking Section */}
-<div style={styles.aiRankingSection}>
-  <button
-    onClick={() => handleAiRanking(job.id)}
-    style={styles.aiRankingBtn}
-  >
-    {showAiRanking ? 'Hide AI Ranking' : 'Show AI Ranking'}
-  </button>
+            <div style={styles.aiRankingSection}>
+              <button
+              onClick={() => handleAiRanking(job.id)}
+              style={styles.aiRankingBtn}
+              >
+              {showAiRanking ? 'Hide AI Ranking' : 'Show AI Ranking'}
+              </button>
 
-  {showAiRanking && (
-    <div style={styles.aiRankingContent}>
-      {loadingAiRanking ? (
-        <p style={styles.loadingText}>Calculating AI ranking...</p>
-      ) : aiRankingError ? (
-        <p style={styles.error}>{aiRankingError}</p>
-      ) : aiRankingData && aiRankingData.rankedCandidates && aiRankingData.rankedCandidates.length > 0 ? (
-        <div>
-          <p style={styles.aiRankingInfo}>
-            <strong>{aiRankingData.totalCandidates}</strong> candidates ranked for 
-            <strong> {aiRankingData.jobTitle}</strong>
-          </p>
-          {aiRankingData.rankedCandidates.map((candidate, index) => (
-            <div key={candidate.candidateId} style={styles.rankedCandidate}>
-              <div style={styles.rankNumber}>#{index + 1}</div>
-              <div style={styles.rankedInfo}>
-                <div style={styles.rankedName}>{candidate.fullName || 'Unknown'}</div>
-                <div style={styles.rankedEmail}>{candidate.email || 'N/A'}</div>
-                <div style={styles.rankedSkills}>
-                  <strong>Skills:</strong> {candidate.skills || 'Not specified'}
-                </div>
+              {showAiRanking && (
+              <div style={styles.aiRankingContent}>
+                {loadingAiRanking ? (
+                <p style={styles.loadingText}>Calculating AI ranking...</p>
+                ) : aiRankingError ? (
+                <p style={styles.error}>{aiRankingError}</p>
+                ) : aiRankingData && aiRankingData.rankedCandidates && aiRankingData.rankedCandidates.length > 0 ? (
+                <div>
+                  <p style={styles.aiRankingInfo}>
+                  <strong>{aiRankingData.totalCandidates}</strong> candidates ranked for 
+                  <strong> {aiRankingData.jobTitle}</strong>
+                  </p>
+                  {aiRankingData.rankedCandidates.map((candidate, index) => (
+                  <div key={candidate.candidateId} style={styles.rankedCandidate}>
+                    <div style={styles.rankNumber}>#{index + 1}</div>
+                      <div style={styles.rankedInfo}>
+                        <div style={styles.rankedName}>{candidate.fullName || 'Unknown'}</div>
+                        <div style={styles.rankedEmail}>{candidate.email || 'N/A'}</div>
+                        <div style={styles.rankedSkills}>
+                          <strong>Skills:</strong> {candidate.skills || 'Not specified'}
+                        </div>
+                      </div>
+                      <div style={styles.rankedScore}>
+                        <span style={getMatchScoreBadgeStyle(candidate.matchScore)}>
+                        {candidate.matchPercentage || '0%'}
+                        </span>
+                      </div>
+                    </div>
+                    ))}
+                  </div>
+                  ) : (
+                  <p style={styles.noRankingData}>
+                    No ranking data available. Candidates may need to update their skills.
+                  </p>
+                )}
               </div>
-              <div style={styles.rankedScore}>
-                <span style={getMatchScoreBadgeStyle(candidate.matchScore)}>
-                  {candidate.matchPercentage || '0%'}
-                </span>
-              </div>
+              )}
             </div>
-          ))}
-        </div>
-      ) : (
-        <p style={styles.noRankingData}>
-          No ranking data available. Candidates may need to update their skills.
-        </p>
-      )}
-    </div>
-  )}
-</div>
 
 
                   {filteredApplicants.length === 0 ? (
@@ -702,6 +703,12 @@ const handleAiRanking = async (jobId) => {
             </div>
           ))
         )}
+      </section>
+
+      {/* Interview Calendar */}
+      <section style={styles.section}>
+        <h2>Interview Calendar</h2>
+        <CalendarView role="Recruiter" />
       </section>
     </div>
   );

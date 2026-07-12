@@ -32,6 +32,17 @@ tr:hover {
   background-color: #f9f9f9;
 }
 
+/* Highlight interview dates with a red background */
+.interview-date {
+  background-color: #ffebee !important;
+  border-radius: 50%;
+}
+
+/* Style the red dot (already inline in tileContent) */
+.react-calendar__tile {
+  position: relative;
+}
+
 
 
 

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../services/apiClient';
+import CalendarView from '../../components/CalendarView';
 
 const CandidatePortalPage = () => {
   const { user, logout } = useAuth();
@@ -542,6 +543,12 @@ const handleApplyExtractedSkills = () => {
             </tbody>
           </table>
         )}
+      </section>
+
+      {/* My Interviews Calendar */}
+      <section style={styles.section}>
+        <h2>My Interviews</h2>
+        <CalendarView role="Candidate" />
       </section>
     </div>
   );

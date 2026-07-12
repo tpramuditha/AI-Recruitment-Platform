@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../services/apiClient';
+import CalendarView from '../../components/CalendarView';
 
 const AdminPortalPage = () => {
   const { user, logout } = useAuth();
@@ -180,6 +181,12 @@ const AdminPortalPage = () => {
             ))}
           </tbody>
         </table>
+      </section>
+
+      {/* Interview Calendar */}
+      <section style={styles.section}>
+        <h2>All Interviews Calendar</h2>
+        <CalendarView role="Admin" />
       </section>
     </div>
   );
