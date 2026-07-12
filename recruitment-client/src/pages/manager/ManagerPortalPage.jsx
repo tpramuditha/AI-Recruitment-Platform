@@ -71,6 +71,22 @@ const ManagerPortalPage = () => {
     }
   };
 
+  const handleViewResume = async (candidateId) => {
+    try {
+      const response = await apiClient.get(`/Candidates/resume/${candidateId}`, {
+        responseType: 'blob'  // Important for files
+      });
+
+      // Create a blob URL and open it
+      const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+      const fileUrl = URL.createObjectURL(fileBlob);
+      window.open(fileUrl, '_blank');
+    } catch (error) {
+      console.error('Error fetching resume:', error);
+      alert('Failed to load resume. Candidate may not have uploaded one.');
+    }
+  };
+
   if (loading) {
     return <div style={styles.loading}>Loading...</div>;
   }
@@ -102,6 +118,10 @@ const ManagerPortalPage = () => {
               <p style={styles.appDetail}><strong>Candidate:</strong> {app.candidateName || 'Unknown'}</p>
               <p style={styles.appDetail}><strong>Email:</strong> {app.candidateEmail || 'N/A'}</p>
               <p style={styles.appDetail}><strong>Applied:</strong> {new Date(app.appliedAt).toLocaleDateString()}</p>
+
+              <button onClick={() => handleViewResume(app.candidateId)}style={styles.viewResumeBtn}>
+                📄 View Resume
+              </button>
 
               {/* Evaluation Form */}
               <div style={styles.evalSection}>
@@ -202,16 +222,57 @@ const getStatusBadgeStyle = (status) => {
 };
 
 const styles = {
-  container: { maxWidth: '1200px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px', borderBottom: '1px solid #eee', marginBottom: '24px' },
-  title: { margin: 0, color: '#1a1a2e' },
-  userInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
-  logoutBtn: { padding: '6px 16px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
-  section: { marginBottom: '40px' },
-  appCard: { padding: '16px', border: '1px solid #e0e0e0', borderRadius: '8px', marginBottom: '16px', backgroundColor: '#fafafa' },
-  appHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  appTitle: { margin: '0 0 8px 0' },
-  appDetail: { margin: '4px 0', fontSize: '14px', color: '#555' },
+  container: 
+  { maxWidth: '1200px',
+    margin: '0 auto', 
+    padding: '20px', 
+    fontFamily: 'sans-serif' 
+  },
+  header:
+  { display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingBottom: '20px', 
+    borderBottom: '1px solid #eee', 
+    marginBottom: '24px' 
+  },
+  title: 
+  { margin: 0, 
+    color: '#1a1a2e' 
+  },
+  userInfo: 
+  { display: 'flex', 
+    alignItems: 'center', 
+    gap: '16px' 
+  },
+  logoutBtn: 
+  { padding: '6px 16px', 
+    backgroundColor: '#dc3545', 
+    color: '#fff', border: 'none', 
+    borderRadius: '4px', 
+    cursor: 'pointer' 
+  },
+  section: 
+  { marginBottom: '40px' 
+  },
+  appCard: 
+  { padding: '16px'
+    , border: '1px solid #e0e0e0', 
+    borderRadius: '8px', 
+    marginBottom: '16px', 
+    backgroundColor: '#fafafa' 
+  },
+  appHeader: 
+  { display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center' 
+  },
+  appTitle: 
+  { margin: '0 0 8px 0' 
+
+  },
+  appDetail: 
+  { margin: '4px 0', fontSize: '14px', color: '#555' },
   evalSection: { marginTop: '12px', padding: '12px', backgroundColor: '#fff', border: '1px solid #e0e0e0', borderRadius: '4px' },
   evalRow: { display: 'flex', gap: '16px', marginBottom: '12px' },
   evalGroup: { flex: '1' },
@@ -221,6 +282,18 @@ const styles = {
   submitBtn: { padding: '8px 16px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
   error: { padding: '12px', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '4px', marginBottom: '16px' },
   loading: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontSize: '18px', fontFamily: 'sans-serif' },
+  viewResumeBtn: {
+  padding: '6px 14px',
+  backgroundColor: '#2196f3',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '13px',
+  marginTop: '8px',
+  display: 'inline-block',
+  textDecoration: 'none',
+},
 };
 
 export default ManagerPortalPage;

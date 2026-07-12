@@ -88,6 +88,10 @@ const RecruiterPortalPage = () => {
     // Reset search and filter when viewing a new job's applicants
     setSearchTerm(''); 
     setStatusFilter('All');
+    setShowAiRanking(false);
+    setAiRankingData(null);
+    setAiRankingError('');
+
     try {
       const response = await apiClient.get(`/Applications/job/${jobId}`);
       setApplicants(response.data);
@@ -484,7 +488,7 @@ const handleAiRanking = async (jobId) => {
                   {/* AI Ranking Section */}
 <div style={styles.aiRankingSection}>
   <button
-    onClick={() => handleAiRanking(selectedJobId)}
+    onClick={() => handleAiRanking(job.id)}
     style={styles.aiRankingBtn}
   >
     {showAiRanking ? 'Hide AI Ranking' : 'Show AI Ranking'}

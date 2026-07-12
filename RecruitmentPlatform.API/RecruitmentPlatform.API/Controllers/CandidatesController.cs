@@ -146,7 +146,7 @@ namespace RecruitmentPlatform.API.Controllers
             await _context.SaveChangesAsync();
 
             // ================================================================
-            // 10. NEW: AI Skill Extraction from Resume
+            // 10. AI Skill Extraction from Resume
             // ================================================================
             string extractedSkills = null;
             bool skillsAutoUpdated = false;
@@ -305,6 +305,66 @@ namespace RecruitmentPlatform.API.Controllers
                 HasResume = !string.IsNullOrEmpty(candidate.ResumeFilePath),
                 candidate.CreatedAt
             });
+        }
+
+        //Resume Download 
+        [HttpGet("resume/{candidateId}")]
+        [Authorize(Roles = "Recruiter,HiringManager,Admin")]
+        public async Task<IActionResult> GetCandidateResume(int candidateId)
+        {
+            var candidate = await _context.Candidates.FindAsync(candidateId);
+            if (candidate == null)
+                return NotFound(new { message = "Candidate not found." });
+
+            if (string.IsNullOrEmpty(candidate.ResumeFilePath))
+                return NotFound(new { message = "Candidate has not uploaded a resume." });
+
+            var relativePath = candidate.ResumeFilePath; // e.g., "uploads/resumes/resume_3.pdf"
+
+            // List of possible absolute paths (in order of preference)
+            var baseDir = Directory.GetCurrentDirectory();
+            var possiblePaths = new List<string>
+    {
+        // Path 1: Using _env.WebRootPath (default, usually outer wwwroot)
+        Path.Combine(_env.WebRootPath, relativePath),
+        // Path 2: Nested wwwroot (your actual location)
+        Path.Combine(baseDir, "RecruitmentPlatform.API", "wwwroot", relativePath),
+        // Path 3: Just wwwroot relative to current directory
+        Path.Combine(baseDir, "wwwroot", relativePath),
+    };
+
+            string foundPath = null;
+            foreach (var path in possiblePaths)
+            {
+                if (System.IO.File.Exists(path))
+                {
+                    foundPath = path;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(foundPath))
+            {
+                // Log the paths for debugging
+                Console.WriteLine("Resume file not found. Searched in:");
+                foreach (var path in possiblePaths)
+                    Console.WriteLine($"  - {path}");
+                return NotFound(new { message = "Resume file not found on server." });
+            }
+
+            var bytes = await System.IO.File.ReadAllBytesAsync(foundPath);
+            var fileName = Path.GetFileName(relativePath);
+
+            // Determine content type based on file extension
+            var extension = Path.GetExtension(fileName).ToLower();
+            var contentType = "application/pdf";
+            if (extension == ".docx") contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            else if (extension == ".doc") contentType = "application/msword";
+            else if (extension == ".txt") contentType = "text/plain";
+            else if (extension == ".png") contentType = "image/png";
+            else if (extension == ".jpg" || extension == ".jpeg") contentType = "image/jpeg";
+
+            return File(bytes, contentType, fileName);
         }
 
 

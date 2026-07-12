@@ -196,7 +196,7 @@ namespace RecruitmentPlatform.API.Controllers
             }
         }
 
-        // NEW: GET: api/AI/feedback/{applicationId}
+        //  GET: api/AI/feedback/{applicationId}
         [HttpGet("feedback/{applicationId}")]
         [Authorize(Roles = "Recruiter,HiringManager,Admin")]
         public async Task<IActionResult> GetFeedback(int applicationId)
