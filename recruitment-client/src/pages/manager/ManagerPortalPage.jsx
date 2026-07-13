@@ -12,6 +12,9 @@ const ManagerPortalPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [evaluationData, setEvaluationData] = useState({});
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+
   const fetchApplications = async () => {
     setLoading(true);
     setError('');
@@ -72,6 +75,21 @@ const ManagerPortalPage = () => {
     }
   };
 
+  // Filter applications based on search term and status filter
+  const filteredApplications = applications.filter((app) => {
+    // Search filter: match candidateName, candidateEmail, or jobTitle (case-insensitive)
+    const searchLower = searchTerm.toLowerCase();
+    const nameMatch = app.candidateName?.toLowerCase().includes(searchLower) || false;
+    const emailMatch = app.candidateEmail?.toLowerCase().includes(searchLower) || false;
+    const jobMatch = app.jobTitle?.toLowerCase().includes(searchLower) || false;
+    const searchMatch = searchTerm === '' || nameMatch || emailMatch || jobMatch;
+
+    // Status filter
+    const statusMatch = statusFilter === 'All' || app.status === statusFilter;
+
+    return searchMatch && statusMatch;
+  });
+
   const handleViewResume = async (candidateId) => {
     try {
       const response = await apiClient.get(`/Candidates/resume/${candidateId}`, {
@@ -105,12 +123,60 @@ const ManagerPortalPage = () => {
 
       {error && <div style={styles.error}>{error}</div>}
 
-      <section style={styles.section}>
-        <h2>Recent Applications</h2>
-        {applications.length === 0 ? (
-          <p>No applications to review.</p>
+     <section style={styles.section}>
+       <div style={styles.sectionHeader}>
+          <h2>Recent Applications</h2>
+          <span style={styles.resultCount}>
+            Showing {filteredApplications.length} of {applications.length} applications
+          </span>
+        </div>
+
+        {/* Search and Filter Bar */}
+        <div style={styles.filterSection}>
+          <div style={styles.filterRow}>
+            <div style={styles.searchGroup}>
+              <input
+                type="text"
+                placeholder="Search by candidate name, email, or job title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={styles.searchInput}
+              />
+            </div>
+            <div style={styles.filterGroup}>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={styles.filterSelect}
+              >
+                <option value="All">All Status</option>
+                <option value="Submitted">Submitted</option>
+                <option value="UnderReview">Under Review</option>
+                <option value="Shortlisted">Shortlisted</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Hired">Hired</option>
+              </select>
+            </div>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('All');
+              }}
+              style={styles.clearFiltersBtn}
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        {filteredApplications.length === 0 ? (
+          <p style={styles.noResults}>
+            {applications.length === 0
+              ? 'No applications to review.'
+              : 'No applications match your filters.'}
+          </p>
         ) : (
-          applications.map((app) => (
+          filteredApplications.map((app) => (
             <div key={app.id} style={styles.appCard}>
               <div style={styles.appHeader}>
                 <h3 style={styles.appTitle}>{app.jobTitle || 'Unknown Job'}</h3>
@@ -120,8 +186,8 @@ const ManagerPortalPage = () => {
               <p style={styles.appDetail}><strong>Email:</strong> {app.candidateEmail || 'N/A'}</p>
               <p style={styles.appDetail}><strong>Applied:</strong> {new Date(app.appliedAt).toLocaleDateString()}</p>
 
-              <button onClick={() => handleViewResume(app.candidateId)}style={styles.viewResumeBtn}>
-                📄 View Resume
+              <button onClick={() => handleViewResume(app.candidateId)} style={styles.viewResumeBtn}>
+              View Resume
               </button>
 
               {/* Evaluation Form */}
@@ -191,7 +257,7 @@ const ManagerPortalPage = () => {
                   disabled={submitting}
                   style={styles.submitBtn}
                 >
-                  {submitting ? 'Submitting...' : 'Submit Evaluation'}
+                {submitting ? 'Submitting...' : 'Submit Evaluation'}
                 </button>
               </div>
             </div>
@@ -300,6 +366,81 @@ const styles = {
   marginTop: '8px',
   display: 'inline-block',
   textDecoration: 'none',
+
+   sectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+    flexWrap: 'wrap',
+    gap: '8px',
+  },
+  resultCount: {
+    fontSize: '14px',
+    color: '#666',
+    fontWeight: 'normal',
+  },
+  filterSection: {
+    marginBottom: '20px',
+    padding: '16px',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '8px',
+    border: '1px solid #e0e0e0',
+  },
+  filterRow: {
+    display: 'flex',
+    gap: '12px',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  searchGroup: {
+    flex: '2',
+    minWidth: '250px',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '10px 14px',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    fontSize: '14px',
+    boxSizing: 'border-box',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+  },
+  filterGroup: {
+    flex: '1',
+    minWidth: '150px',
+  },
+  filterSelect: {
+    width: '100%',
+    padding: '10px 14px',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    fontSize: '14px',
+    backgroundColor: '#fff',
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    outline: 'none',
+  },
+  clearFiltersBtn: {
+    padding: '10px 20px',
+    backgroundColor: '#6c757d',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    whiteSpace: 'nowrap',
+    transition: 'background-color 0.2s',
+  },
+  noResults: {
+    padding: '20px',
+    textAlign: 'center',
+    color: '#666',
+    backgroundColor: '#fafafa',
+    borderRadius: '8px',
+    border: '1px dashed #ddd',
+  },
 },
 };
 
