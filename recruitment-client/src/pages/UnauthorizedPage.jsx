@@ -1,10 +1,20 @@
-// src/pages/UnauthorizedPage.jsx
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getRedirectPath } from '../routes';
 
 const UnauthorizedPage = () => {
   const { user } = useAuth();
+
+  // Get redirect path based on role (inline logic)
+  const getRedirectPath = (role) => {
+    switch (role) {
+      case 'Admin': return '/admin';
+      case 'Recruiter': return '/recruiter';
+      case 'HiringManager': return '/manager';
+      case 'Candidate': return '/candidate';
+      default: return '/login';
+    }
+  };
+
   const redirectPath = user ? getRedirectPath(user.role) : '/login';
 
   return (

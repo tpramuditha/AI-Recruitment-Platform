@@ -1,0 +1,147 @@
+/* src/pages/recruiter/RecruiterHomePage.css */
+
+.recruiter-home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.recruiter-home-title {
+  font-size: 28px;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.recruiter-home-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.recruiter-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.recruiter-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.recruiter-stat-icon {
+  font-size: 32px;
+}
+
+.recruiter-stat-number {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1a1a2e;
+}
+
+.recruiter-stat-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.recruiter-recent-section {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.recruiter-section-title {
+  font-size: 18px;
+  color: #1a1a2e;
+  margin-bottom: 16px;
+}
+
+.recruiter-app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recruiter-app-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recruiter-app-email {
+  font-size: 13px;
+  color: #888;
+  margin-left: 8px;
+}
+
+.recruiter-app-job {
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+.recruiter-no-data {
+  color: #999;
+  text-align: center;
+  padding: 20px;
+}
+
+.recruiter-quick-actions {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.recruiter-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.recruiter-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #1a1a2e;
+  transition: transform 0.2s;
+}
+
+.recruiter-action-card:hover {
+  transform: translateY(-2px);
+}
+
+.recruiter-action-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.recruiter-action-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.recruiter-loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 16px;
+  color: #666;
+}

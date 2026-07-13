@@ -24,6 +24,8 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem('authToken') || null;
   });
 
+  const [loading, setLoading] = useState(true); // ✅ ADDED loading state
+
   // Whenever user or token changes, update localStorage
   useEffect(() => {
     if (user) {
@@ -41,6 +43,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
+  // ✅ Check if token is valid (optional) and set loading to false
+  useEffect(() => {
+    // If there's a token but no user, we could validate it here.
+    // For now, just set loading to false after a short delay.
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // Login function – called from login form
   const login = (userData, jwtToken) => {
     setUser(userData);
@@ -57,6 +70,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     token,
+    loading,      // ✅ EXPOSE loading
     login,
     logout,
     isAuthenticated: !!token && !!user,

@@ -1,0 +1,122 @@
+/* src/pages/recruiter/RecruiterPostJobPage.css */
+
+.recruiter-post-job-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.recruiter-post-job-title {
+  font-size: 28px;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.recruiter-post-job-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.recruiter-post-job-form {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.recruiter-form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.recruiter-form-group {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.recruiter-form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.recruiter-input,
+.recruiter-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.recruiter-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  font-family: sans-serif;
+  resize: vertical;
+}
+
+.recruiter-hint {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.recruiter-button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.recruiter-submit-btn {
+  padding: 10px 24px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.recruiter-submit-btn:hover {
+  background-color: #218838;
+}
+
+.recruiter-cancel-btn {
+  padding: 10px 24px;
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.recruiter-cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+.recruiter-error {
+  padding: 12px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.recruiter-success {
+  padding: 12px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}

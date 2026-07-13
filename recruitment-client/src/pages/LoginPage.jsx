@@ -1,9 +1,7 @@
-// src/pages/LoginPage.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { login as apiLogin } from '../services/authService';
-import { getRedirectPath } from '../routes';
+import apiClient from '../services/apiClient';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -19,14 +17,26 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const data = await apiLogin(email, password);
-      login(data.user, data.token);
-      
+      const response = await apiClient.post('/Auth/login', { email, password });
+      const { token, user } = response.data;
+
+      login(user, token);
+
       // Redirect based on role
-      const redirectPath = getRedirectPath(data.user.role);
-      navigate(redirectPath);
+      const role = user.role;
+      if (role === 'Admin') {
+        navigate('/admin');
+      } else if (role === 'Recruiter') {
+        navigate('/recruiter');
+      } else if (role === 'HiringManager') {
+        navigate('/manager');
+      } else if (role === 'Candidate') {
+        navigate('/candidate');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
-      setError('Login failed. Check your email and password.');
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -48,6 +58,7 @@ const LoginPage = () => {
               required
               style={styles.input}
               disabled={loading}
+              placeholder="Enter your email"
             />
           </div>
 
@@ -60,6 +71,7 @@ const LoginPage = () => {
               required
               style={styles.input}
               disabled={loading}
+              placeholder="Enter your password"
             />
           </div>
 
@@ -72,7 +84,7 @@ const LoginPage = () => {
 
         <div style={styles.registerLink}>
           <p>Don't have an account? <Link to="/register" style={styles.link}>Register here</Link></p>
-          <p style={styles.hint}>Demo: test@example.com / Test123!</p>
+          <p style={styles.hint}>Demo Accounts: malindu@gmail.com / 123 (Recruiter)</p>
         </div>
       </div>
     </div>
@@ -124,6 +136,18 @@ const styles = {
     borderRadius: '4px',
     fontSize: '14px',
     boxSizing: 'border-box',
+  },
+  button: {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#1a73e8',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '16px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    marginTop: '8px',
   },
   button: {
     width: '100%',
