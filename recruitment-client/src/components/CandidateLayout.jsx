@@ -10,11 +10,11 @@ const CandidateLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menuItems = [
-    { path: '/candidate', label: '🏠 Home', icon: '🏠' },
-    { path: '/candidate/profile', label: '👤 My Profile', icon: '👤' },
-    { path: '/candidate/jobs', label: '💼 Available Jobs', icon: '💼' },
-    { path: '/candidate/applications', label: '📝 My Applications', icon: '📝' },
-    { path: '/candidate/interviews', label: '📅 My Interviews', icon: '📅' },
+    { path: '/candidate', label: ' Home', icon: '🏠' },
+    { path: '/candidate/profile', label: ' My Profile', icon: '👤' },
+    { path: '/candidate/jobs', label: ' Available Jobs', icon: '💼' },
+    { path: '/candidate/applications', label: ' My Applications', icon: '📝' },
+    { path: '/candidate/interviews', label: ' My Interviews', icon: '📅' },
   ];
 
   const handleLogout = () => {
@@ -65,7 +65,7 @@ const CandidateLayout = () => {
             )}
           </div>
           <button onClick={handleLogout} className="candidate-logout-btn">
-            🚪 {sidebarOpen && 'Logout'}
+             {sidebarOpen && 'Logout'}
           </button>
         </div>
       </div>

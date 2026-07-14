@@ -1,0 +1,9 @@
+.manager-interviews-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.manager-interviews-title {
+  font-size: 28px;
+  color: #1a1a2e;
+  margin-bottom: 20px;
+}

@@ -1,0 +1,174 @@
+.manager-applications-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.manager-applications-title {
+  font-size: 28px;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+.manager-applications-stats {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+.manager-applications-error {
+  padding: 12px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+.manager-applications-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Filter */
+.manager-filter-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+.manager-filter-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.manager-search-group {
+  flex: 2;
+  min-width: 250px;
+}
+.manager-search-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+}
+.manager-filter-group {
+  flex: 1;
+  min-width: 150px;
+}
+.manager-filter-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.manager-clear-filters-btn {
+  padding: 10px 20px;
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.manager-no-results {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+}
+
+/* Application Cards */
+.manager-app-card {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  background-color: #fafafa;
+}
+.manager-app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.manager-app-title {
+  margin: 0 0 8px 0;
+}
+.manager-app-detail {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #555;
+}
+.manager-view-resume-btn {
+  padding: 6px 14px;
+  background-color: #2196f3;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+/* Evaluation */
+.manager-eval-section {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+.manager-eval-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.manager-eval-group {
+  flex: 1;
+}
+.manager-eval-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.manager-eval-input,
+.manager-eval-select,
+.manager-eval-textarea {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 13px;
+}
+.manager-eval-textarea {
+  resize: vertical;
+  font-family: sans-serif;
+}
+.manager-submit-eval-btn {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.manager-submit-eval-btn:hover {
+  background-color: #218838;
+}
+.manager-submit-eval-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

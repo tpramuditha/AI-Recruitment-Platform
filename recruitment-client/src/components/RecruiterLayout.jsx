@@ -10,9 +10,9 @@ const RecruiterLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menuItems = [
-    { path: '/recruiter', label: '🏠 Home', icon: '🏠' },
-    { path: '/recruiter/jobs', label: '💼 Your Jobs', icon: '💼' },
-    { path: '/recruiter/post-job', label: '➕ Post New Job', icon: '➕' },
+    { path: '/recruiter', label: ' Home', icon: '🏠' },
+    { path: '/recruiter/jobs', label: ' Your Jobs', icon: '💼' },
+    { path: '/recruiter/post-job', label: ' Post New Job', icon: '➕' },
   ];
 
   const handleLogout = () => {
@@ -64,7 +64,7 @@ const RecruiterLayout = () => {
             )}
           </div>
           <button onClick={handleLogout} className="recruiter-logout-btn">
-            🚪 {sidebarOpen && 'Logout'}
+           {sidebarOpen && 'Logout'}
           </button>
         </div>
       </div>
