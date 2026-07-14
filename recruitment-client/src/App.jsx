@@ -3,7 +3,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import RecruiterLayout from './components/RecruiterLayout';
 import CandidateLayout from './components/CandidateLayout';
-import ManagerLayout from './components/ManagerLayout'; // NEW
+import ManagerLayout from './components/ManagerLayout';
+import AdminLayout from './components/AdminLayout'; // NEW
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -22,13 +23,15 @@ import CandidateJobsPage from './pages/candidate/CandidateJobsPage';
 import CandidateApplicationsPage from './pages/candidate/CandidateApplicationsPage';
 import CandidateInterviewsPage from './pages/candidate/CandidateInterviewsPage';
 
-// Manager Pages (NEW)
+// Manager Pages
 import ManagerHomePage from './pages/manager/ManagerHomePage';
 import ManagerApplicationsPage from './pages/manager/ManagerApplicationsPage';
 import ManagerInterviewsPage from './pages/manager/ManagerInterviewsPage';
 
-// Admin Pages (unchanged)
-import AdminPortalPage from './pages/admin/AdminPortalPage';
+// Admin Pages (NEW)
+import AdminHomePage from './pages/admin/AdminHomePage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminInterviewsPage from './pages/admin/AdminInterviewsPage';
 
 function App() {
   return (
@@ -75,12 +78,16 @@ function App() {
             <Route path="interviews" element={<ManagerInterviewsPage />} />
           </Route>
 
-          {/* Admin route (unchanged) */}
+          {/* Admin routes (NEW) */}
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['Admin']}>
-              <AdminPortalPage />
+              <AdminLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index element={<AdminHomePage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="interviews" element={<AdminInterviewsPage />} />
+          </Route>
 
           <Route path="/" element={<LoginPage />} />
         </Routes>
