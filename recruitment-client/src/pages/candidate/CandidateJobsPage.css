@@ -1,0 +1,85 @@
+/* src/pages/candidate/CandidateJobsPage.css */
+
+.candidate-jobs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.candidate-jobs-title {
+  font-size: 28px;
+  color: #1a1a2e;
+  margin-bottom: 20px;
+}
+
+.candidate-jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.candidate-job-card {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: box-shadow 0.2s;
+}
+
+.candidate-job-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.candidate-job-title {
+  margin: 0 0 8px 0;
+  color: #1a1a2e;
+}
+
+.candidate-job-detail {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.candidate-apply-btn {
+  margin-top: 12px;
+  padding: 6px 16px;
+  background-color: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.candidate-apply-btn:hover {
+  background-color: #1557b0;
+}
+
+.candidate-apply-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.candidate-jobs-error {
+  padding: 12px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.candidate-jobs-success {
+  padding: 12px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.candidate-jobs-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 16px;
+  color: #666;
+}

@@ -1,0 +1,95 @@
+/* src/pages/candidate/CandidateHomePage.css */
+
+.candidate-home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.candidate-home-title {
+  font-size: 28px;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.candidate-home-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.candidate-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.candidate-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-stat-icon {
+  font-size: 32px;
+}
+
+.candidate-stat-number {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1a1a2e;
+}
+
+.candidate-stat-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.candidate-quick-actions {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-section-title {
+  font-size: 18px;
+  color: #1a1a2e;
+  margin-bottom: 16px;
+}
+
+.candidate-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.candidate-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #1a1a2e;
+  transition: transform 0.2s;
+}
+
+.candidate-action-card:hover {
+  transform: translateY(-2px);
+}
+
+.candidate-action-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.candidate-action-label {
+  font-size: 14px;
+  font-weight: 500;
+}

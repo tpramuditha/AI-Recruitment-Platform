@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import RecruiterLayout from './components/RecruiterLayout';
+import CandidateLayout from './components/CandidateLayout';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -13,8 +14,14 @@ import RecruiterHomePage from './pages/recruiter/RecruiterHomePage';
 import RecruiterJobsPage from './pages/recruiter/RecruiterJobsPage';
 import RecruiterPostJobPage from './pages/recruiter/RecruiterPostJobPage';
 
+// Candidate Pages
+import CandidateHomePage from './pages/candidate/CandidateHomePage';
+import CandidateProfilePage from './pages/candidate/CandidateProfilePage';
+import CandidateJobsPage from './pages/candidate/CandidateJobsPage';
+import CandidateApplicationsPage from './pages/candidate/CandidateApplicationsPage';
+import CandidateInterviewsPage from './pages/candidate/CandidateInterviewsPage';
+
 // Other Portal Pages
-import CandidatePortalPage from './pages/candidate/CandidatePortalPage';
 import ManagerPortalPage from './pages/manager/ManagerPortalPage';
 import AdminPortalPage from './pages/admin/AdminPortalPage';
 
@@ -39,12 +46,20 @@ function App() {
             <Route path="post-job" element={<RecruiterPostJobPage />} />
           </Route>
 
-          {/* Other routes */}
+          {/* Candidate routes with sidebar layout */}
           <Route path="/candidate" element={
             <ProtectedRoute allowedRoles={['Candidate']}>
-              <CandidatePortalPage />
+              <CandidateLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index element={<CandidateHomePage />} />
+            <Route path="profile" element={<CandidateProfilePage />} />
+            <Route path="jobs" element={<CandidateJobsPage />} />
+            <Route path="applications" element={<CandidateApplicationsPage />} />
+            <Route path="interviews" element={<CandidateInterviewsPage />} />
+          </Route>
+
+          {/* Other routes */}
           <Route path="/manager" element={
             <ProtectedRoute allowedRoles={['HiringManager']}>
               <ManagerPortalPage />
