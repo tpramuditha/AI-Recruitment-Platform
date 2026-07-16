@@ -15,6 +15,7 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 import RecruiterHomePage from './pages/recruiter/RecruiterHomePage';
 import RecruiterJobsPage from './pages/recruiter/RecruiterJobsPage';
 import RecruiterPostJobPage from './pages/recruiter/RecruiterPostJobPage';
+import InterviewCalendarPage from './pages/recruiter/InterviewCalendarPage';
 
 // Candidate Pages
 import CandidateHomePage from './pages/candidate/CandidateHomePage';
@@ -52,6 +53,7 @@ function App() {
             <Route index element={<RecruiterHomePage />} />
             <Route path="jobs" element={<RecruiterJobsPage />} />
             <Route path="post-job" element={<RecruiterPostJobPage />} />
+            <Route path="calendar" element={<InterviewCalendarPage />} />
           </Route>
 
           {/* Candidate routes */}

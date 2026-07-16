@@ -43,24 +43,15 @@ const RecruiterHomePage = () => {
     }
   };
 
-  const getStatusBadgeStyle = (status) => {
-    const colors = {
-      'Submitted': '#2196f3',
-      'UnderReview': '#ff9800',
-      'Shortlisted': '#4caf50',
-      'Rejected': '#f44336',
-      'Hired': '#1b5e20',
+  const getStatusBadgeClass = (status) => {
+    const map = {
+      'Submitted': 'badge-submitted',
+      'UnderReview': 'badge-review',
+      'Shortlisted': 'badge-shortlisted',
+      'Rejected': 'badge-rejected',
+      'Hired': 'badge-hired',
     };
-    return {
-      display: 'inline-block',
-      padding: '2px 10px',
-      borderRadius: '12px',
-      fontSize: '11px',
-      fontWeight: '500',
-      backgroundColor: colors[status] || '#999',
-      color: '#fff',
-      marginLeft: '8px',
-    };
+    return `best-hire-status-badge ${map[status] || 'badge-default'}`;
   };
 
   if (loading) {
@@ -103,14 +94,19 @@ const RecruiterHomePage = () => {
         ) : (
           <div className="recruiter-app-list">
             {stats.recentApplications.map((app, index) => (
-              <div key={index} className="recruiter-app-item">
-                <div>
-                  <strong>{app.candidateName || 'Unknown'}</strong>
-                  <span className="recruiter-app-email">{app.candidateEmail || ''}</span>
+              <div key={index} className="best-hire-app-item">
+                <div className="app-item-info">
+                  <div className="app-item-avatar">
+                    {app.candidateName?.charAt(0) || '?'}
+                  </div>
+                  <div>
+                    <strong className="app-candidate-name">{app.candidateName || 'Unknown'}</strong>
+                    <span className="best-hire-app-email">{app.candidateEmail || ''}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="recruiter-app-job">{app.jobTitle || 'Unknown Job'}</span>
-                  <span style={getStatusBadgeStyle(app.status)}>{app.status}</span>
+                <div className="app-item-metadata">
+                  <span className="best-hire-app-job">{app.jobTitle || 'Unknown Job'}</span>
+                  <span className={getStatusBadgeClass(app.status)}>{app.status}</span>
                 </div>
               </div>
             ))}

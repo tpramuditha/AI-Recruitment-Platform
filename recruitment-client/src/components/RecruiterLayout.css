@@ -1,187 +1,336 @@
-/* src/components/RecruiterLayout.css */
-
-.recruiter-layout-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fa;
+:root {
+  --primary-color: #4f46e5;       /* Modern Indigo */
+  --sidebar-bg: #0f172a;          /* Slate 900 */
+  --sidebar-hover: #1e293b;       /* Slate 800 */
+  --bg-workspace: #f8fafc;        /* Slate 50 */
+  --border-color: #e2e8f0;        /* Slate 200 */
+  --text-main: #334155;           /* Slate 700 */
+  --text-muted: #64748b;          /* Slate 500 */
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* ===== Sidebar ===== */
-.recruiter-sidebar {
+.best-hire-layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-workspace);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+}
+
+/* ===== Sidebar Styling ===== */
+.best-hire-sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  background-color: #1a1a2e;
-  color: #fff;
-  transition: width 0.3s ease;
+  background-color: var(--sidebar-bg);
+  color: #f1f5f9;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  overflow: hidden;
+  z-index: 100;
+  border-right: 1px solid #1e293b;
 }
 
-.recruiter-sidebar.open {
-  width: 260px;
+.best-hire-sidebar.open {
+  width: 250px;
 }
 
-.recruiter-sidebar.closed {
-  width: 70px;
+.best-hire-sidebar.closed {
+  width: 72px;
 }
 
-.recruiter-sidebar-header {
-  padding: 20px;
+.best-hire-sidebar-header {
+  height: 64px;
+  padding: 0 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #1e293b;
 }
 
-.recruiter-logo {
-  margin: 0;
-  font-size: 20px;
-  color: #fff;
-  white-space: nowrap;
+.best-hire-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.recruiter-toggle-btn {
-  background: none;
-  border: none;
+.best-hire-logo-icon {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-color);
   color: #fff;
-  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
   font-size: 16px;
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 
-.recruiter-toggle-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* ===== Navigation ===== */
-.recruiter-nav {
-  flex: 1;
-  padding: 20px 0;
-}
-
-.recruiter-nav-link {
-  display: flex;
-  align-items: center;
-  padding: 12px 20px;
-  color: #aaa;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border-left: 3px solid transparent;
-  gap: 12px;
-}
-
-.recruiter-nav-link:hover {
+.best-hire-logo-text {
+  font-size: 16px;
+  font-weight: 600;
   color: #fff;
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.recruiter-nav-link.active {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-left-color: #4caf50;
-}
-
-.recruiter-nav-icon {
-  font-size: 20px;
-  min-width: 30px;
-}
-
-.recruiter-nav-label {
-  font-size: 14px;
   white-space: nowrap;
 }
 
-/* ===== Sidebar Footer ===== */
-.recruiter-sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.best-hire-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.recruiter-user-info {
+.best-hire-toggle-btn:hover {
+  background: var(--sidebar-hover);
+  color: #fff;
+}
+
+/* ===== Navigation Links ===== */
+.best-hire-nav {
+  flex: 1;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.best-hire-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  color: #94a3b8;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  gap: 12px;
+}
+
+.best-hire-nav-link:hover {
+  color: #fff;
+  background-color: var(--sidebar-hover);
+}
+
+.best-hire-nav-link.active {
+  color: #fff;
+  background-color: var(--primary-color);
+}
+
+.best-hire-nav-icon {
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+}
+
+.best-hire-nav-label {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ===== Footer / Profile Action ===== */
+.best-hire-sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.best-hire-user-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
 }
 
-.recruiter-user-avatar {
+.best-hire-user-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: #4caf50;
+  background-color: #6366f1;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.best-hire-user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.best-hire-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.best-hire-user-role {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.best-hire-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.best-hire-logout-btn:hover {
+  background-color: #ef4444;
   color: #fff;
 }
 
-.recruiter-user-name {
+/* ===== Workspace Alignment ===== */
+.best-hire-main-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+}
+
+.best-hire-main-workspace.open {
+  padding-left: 250px;
+}
+
+.best-hire-main-workspace.closed {
+  padding-left: 72px;
+}
+
+/* ===== Top Header ===== */
+.best-hire-top-header {
+  height: 64px;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-breadcrumb {
   font-size: 14px;
   font-weight: 500;
-  color: #fff;
+  color: var(--text-muted);
 }
 
-.recruiter-user-role {
-  font-size: 12px;
-  color: #aaa;
-}
-
-.recruiter-logout-btn {
-  width: 100%;
-  padding: 8px 12px;
-  background-color: #dc3545;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
+.header-right {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 16px;
 }
 
-.recruiter-logout-btn:hover {
-  background-color: #c82333;
+.header-notification {
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-muted);
 }
 
-/* ===== Main Content ===== */
-.recruiter-main-content {
-  flex: 1;
-  padding: 24px;
-  transition: margin-left 0.3s ease;
+.header-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-color);
 }
 
-.recruiter-main-content.open {
-  margin-left: 260px;
+.header-user-display {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
-.recruiter-main-content.closed {
-  margin-left: 70px;
+.best-hire-content-body {
+  padding: 32px 40px;
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-/* ===== Responsive ===== */
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
-  .recruiter-sidebar.open {
-    width: 200px;
+  .best-hire-main-workspace.open,
+  .best-hire-main-workspace.closed {
+    padding-left: 72px;
+  }
+}
+
+/* ===== Mobile & Tablet Responsiveness ===== */
+@media (max-width: 900px) {
+  /* 1. Force the sidebar to collapse to 72px on smaller screens */
+  .best-hire-sidebar.open,
+  .best-hire-sidebar.closed {
+    width: 72px;
+  }
+
+  /* 2. Hide text elements so only icons show on small screens */
+  .best-hire-sidebar.open .best-hire-logo-text,
+  .best-hire-sidebar.open .best-hire-nav-label,
+  .best-hire-sidebar.open .best-hire-user-details,
+  .best-hire-sidebar.open .best-hire-toggle-btn {
+    display: none !important;
+  }
+
+  /* 3. Adjust the logout button to fit the mini sidebar */
+  .best-hire-sidebar.open .best-hire-logout-btn,
+  .best-hire-sidebar.closed .best-hire-logout-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    margin: 0 auto;
   }
   
-  .recruiter-main-content.open {
-    margin-left: 200px;
+  .best-hire-sidebar.open .best-hire-logout-btn {
+    font-size: 0; /* Hides the "Logout" text */
   }
   
-  .recruiter-sidebar.closed {
-    width: 60px;
+  .best-hire-sidebar.open .best-hire-logout-btn .logout-icon {
+    font-size: 18px; /* Keeps only the door icon visible */
   }
-  
-  .recruiter-main-content.closed {
-    margin-left: 60px;
+
+  /* 4. Ensure the main content doesn't slide under the sidebar */
+  .best-hire-main-workspace.open,
+  .best-hire-main-workspace.closed {
+    padding-left: 72px;
+  }
+
+  /* 5. Add a bit more breathing room for small content padding */
+  .best-hire-content-body {
+    padding: 20px 16px;
   }
 }
