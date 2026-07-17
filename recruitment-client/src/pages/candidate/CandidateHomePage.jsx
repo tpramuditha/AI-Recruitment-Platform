@@ -1,4 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
 import './CandidateHomePage.css';
 
 const CandidateHomePage = () => {
@@ -6,29 +7,31 @@ const CandidateHomePage = () => {
 
   return (
     <div className="candidate-home-container">
-      <h1 className="candidate-home-title">Welcome back, {user?.fullName} 👋</h1>
-      <p className="candidate-home-subtitle">Your recruitment journey starts here</p>
+      <div>
+        <h1 className="candidate-home-title">Welcome back, {user?.fullName} 👋</h1>
+        <p className="candidate-home-subtitle">Your personalized recruitment hub</p>
+      </div>
 
       <div className="candidate-stats-grid">
         <div className="candidate-stat-card">
-          <div className="candidate-stat-icon">💼</div>
+          <div className="candidate-stat-icon red">💼</div>
           <div>
-            <div className="candidate-stat-number">Find Jobs</div>
-            <div className="candidate-stat-label">Browse available positions</div>
+            <div className="candidate-stat-number">Explore Opportunities</div>
+            <div className="candidate-stat-label">Find open roles</div>
           </div>
         </div>
         <div className="candidate-stat-card">
-          <div className="candidate-stat-icon">📝</div>
+          <div className="candidate-stat-icon green">📝</div>
           <div>
-            <div className="candidate-stat-number">Apply</div>
-            <div className="candidate-stat-label">Submit your applications</div>
+            <div className="candidate-stat-number">Apply Today</div>
+            <div className="candidate-stat-label">Track submission fields</div>
           </div>
         </div>
         <div className="candidate-stat-card">
-          <div className="candidate-stat-icon">📅</div>
+          <div className="candidate-stat-icon purple">📅</div>
           <div>
-            <div className="candidate-stat-number">Track</div>
-            <div className="candidate-stat-label">Follow your interviews</div>
+            <div className="candidate-stat-number">Interview Ready</div>
+            <div className="candidate-stat-label">Review your pipeline</div>
           </div>
         </div>
       </div>
@@ -36,22 +39,22 @@ const CandidateHomePage = () => {
       <div className="candidate-quick-actions">
         <h2 className="candidate-section-title">Quick Actions</h2>
         <div className="candidate-action-grid">
-          <a href="/candidate/jobs" className="candidate-action-card">
+          <Link to="/candidate/jobs" className="candidate-action-card">
             <div className="candidate-action-icon">🔍</div>
             <div className="candidate-action-label">Browse Jobs</div>
-          </a>
-          <a href="/candidate/applications" className="candidate-action-card">
+          </Link>
+          <Link to="/candidate/applications" className="candidate-action-card">
             <div className="candidate-action-icon">📋</div>
             <div className="candidate-action-label">My Applications</div>
-          </a>
-          <a href="/candidate/profile" className="candidate-action-card">
+          </Link>
+          <Link to="/candidate/profile" className="candidate-action-card">
             <div className="candidate-action-icon">👤</div>
             <div className="candidate-action-label">Update Profile</div>
-          </a>
-          <a href="/candidate/interviews" className="candidate-action-card">
+          </Link>
+          <Link to="/candidate/interviews" className="candidate-action-card">
             <div className="candidate-action-icon">📅</div>
             <div className="candidate-action-label">My Interviews</div>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

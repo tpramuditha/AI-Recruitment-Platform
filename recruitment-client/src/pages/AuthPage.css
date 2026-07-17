@@ -1,0 +1,297 @@
+:root {
+  --pf-primary: #1e3a8a;       /* Deep slate blue */
+  --pf-accent: #3b82f6;        /* Bright brand blue */
+  --pf-success: #10b981;       /* Active green */
+  --pf-text-dark: #1f2937;     /* High-contrast slate */
+  --pf-text-muted: #6b7280;    /* Light gray for hints */
+  --pf-bg-light: #f8fafc;      /* Background gray */
+  --pf-border: #e2e8f0;        /* Subtle border */
+  --pf-error: #ef4444;         /* Error state */
+  --pf-radius: 12px;
+  --pf-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Split-Screen Wrapper */
+.pf-auth-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--pf-bg-light);
+  overflow: hidden;
+}
+
+/* Left Sidebar - Branding & Animation */
+.pf-auth-banner {
+  flex: 1.2;
+  background: linear-gradient(135deg, var(--pf-primary) 0%, #111827 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3.5rem;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 968px) {
+  .pf-auth-banner {
+    display: none; /* Collapse banner on smaller screens just like PeopleForce */
+  }
+}
+
+/* Floating Decorative Blobs */
+.pf-banner-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 1;
+  opacity: 0.15;
+  animation: floatBlobs 8s infinite ease-in-out alternate;
+}
+
+.blob-1 {
+  width: 300px;
+  height: 300px;
+  background-color: var(--pf-accent);
+  top: -50px;
+  right: -50px;
+}
+
+.blob-2 {
+  width: 400px;
+  height: 400px;
+  background-color: var(--pf-success);
+  bottom: -100px;
+  left: -50px;
+  animation-delay: -4s;
+}
+
+@keyframes floatBlobs {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, -30px) scale(1.1); }
+}
+
+.pf-banner-header .pf-app-logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pf-banner-header .pf-app-logo span {
+  color: var(--pf-accent);
+}
+
+.pf-banner-body {
+  position: relative;
+  z-index: 2;
+  max-width: 480px;
+}
+
+.pf-banner-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(to right, #ffffff, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pf-banner-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #9ca3af;
+}
+
+.pf-banner-footer {
+  position: relative;
+  z-index: 2;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Right Column - Active Form Card */
+.pf-auth-form-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #ffffff;
+  animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.pf-form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.pf-form-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--pf-text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.pf-form-subtitle {
+  color: var(--pf-text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.pf-form-subtitle a {
+  color: var(--pf-accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--pf-transition);
+}
+
+.pf-form-subtitle a:hover {
+  text-decoration: underline;
+}
+
+/* Input Fields & Animated Floating Labels */
+.pf-input-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.pf-input-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  font-size: 0.95rem;
+  color: var(--pf-text-dark);
+  background-color: transparent;
+  outline: none;
+  transition: var(--pf-transition);
+}
+
+.pf-input-group input:focus {
+  border-color: var(--pf-accent);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.pf-input-group label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ffffff;
+  padding: 0 4px;
+  color: var(--pf-text-muted);
+  transition: var(--pf-transition);
+  pointer-events: none;
+  font-size: 0.95rem;
+}
+
+.pf-input-group input:focus ~ label,
+.pf-input-group input:not(:placeholder-shown) ~ label {
+  top: 0;
+  font-size: 0.8rem;
+  color: var(--pf-accent);
+  font-weight: 600;
+}
+
+/* Action Button */
+.pf-btn-primary {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--pf-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--pf-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--pf-transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.pf-btn-primary:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+/* Error Shaking Animation */
+.pf-error-message {
+  background-color: rgba(239, 68, 68, 0.08);
+  border-left: 4px solid var(--pf-error);
+  color: var(--pf-error);
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Unauthorized Page Styles */
+.pf-unauthorized-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--pf-bg-light);
+  font-family: 'Inter', sans-serif;
+  padding: 2rem;
+}
+
+.pf-unauthorized-card {
+  background: #ffffff;
+  padding: 3rem;
+  border-radius: var(--pf-radius);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pf-unauthorized-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--pf-error);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem auto;
+}
+
+.pf-unauthorized-icon svg {
+  width: 40px;
+  height: 40px;
+}

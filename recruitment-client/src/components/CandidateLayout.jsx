@@ -10,11 +10,11 @@ const CandidateLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menuItems = [
-    { path: '/candidate', label: ' Home', icon: '🏠' },
-    { path: '/candidate/profile', label: ' My Profile', icon: '👤' },
-    { path: '/candidate/jobs', label: ' Available Jobs', icon: '💼' },
-    { path: '/candidate/applications', label: ' My Applications', icon: '📝' },
-    { path: '/candidate/interviews', label: ' My Interviews', icon: '📅' },
+    { path: '/candidate', label: 'Home', icon: '🏠' },
+    { path: '/candidate/profile', label: 'My Profile', icon: '👤' },
+    { path: '/candidate/jobs', label: 'Available Jobs', icon: '💼' },
+    { path: '/candidate/applications', label: 'My Applications', icon: '📝' },
+    { path: '/candidate/interviews', label: 'My Interviews', icon: '📅' },
   ];
 
   const handleLogout = () => {
@@ -23,55 +23,74 @@ const CandidateLayout = () => {
   };
 
   return (
-    <div className="candidate-layout-container">
-      <div className={`candidate-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="candidate-sidebar-header">
-          <h2 className="candidate-logo">
-            {sidebarOpen ? '👤 Candidate' : '👤'}
-          </h2>
+    <div className="best-hire-candidate-container">
+      {/* Sidebar Layout */}
+      <aside className={`best-hire-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+        <div className="best-hire-sidebar-header">
+          <div className="best-hire-logo-group">
+            <div className="best-hire-logo-icon">B</div>
+            {sidebarOpen && <span className="best-hire-logo-text">Best Hire</span>}
+          </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="candidate-toggle-btn"
+            className="best-hire-toggle-btn"
+            aria-label="Toggle Navigation"
           >
-            {sidebarOpen ? '◀' : '▶'}
+            {sidebarOpen ? '‹' : '›'}
           </button>
         </div>
 
-        <nav className="candidate-nav">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`candidate-nav-link ${
-                location.pathname === item.path ? 'active' : ''
-              }`}
-            >
-              <span className="candidate-nav-icon">{item.icon}</span>
-              {sidebarOpen && <span className="candidate-nav-label">{item.label}</span>}
-            </Link>
-          ))}
+        <nav className="best-hire-nav">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`best-hire-nav-link ${isActive ? 'active' : ''}`}
+              >
+                <span className="best-hire-nav-icon">{item.icon}</span>
+                {sidebarOpen && <span className="best-hire-nav-label">{item.label}</span>}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="candidate-sidebar-footer">
-          <div className="candidate-user-info">
-            <div className="candidate-user-avatar">
+        <div className="best-hire-sidebar-footer">
+          <div className="best-hire-user-info">
+            <div className="best-hire-user-avatar">
               {user?.fullName?.charAt(0) || 'C'}
             </div>
             {sidebarOpen && (
-              <div>
-                <div className="candidate-user-name">{user?.fullName || 'Candidate'}</div>
-                <div className="candidate-user-role">{user?.role || 'Role'}</div>
+              <div className="best-hire-user-details">
+                <div className="best-hire-user-name">{user?.fullName || 'Candidate'}</div>
+                <div className="best-hire-user-role">Candidate Workspace</div>
               </div>
             )}
           </div>
-          <button onClick={handleLogout} className="candidate-logout-btn">
-             {sidebarOpen && 'Logout'}
+          <button onClick={handleLogout} className="best-hire-logout-btn" title="Sign out">
+            <span className="logout-icon">🚪</span>
+            {sidebarOpen && 'Logout'}
           </button>
         </div>
-      </div>
+      </aside>
 
-      <div className={`candidate-main-content ${sidebarOpen ? 'open' : 'closed'}`}>
-        <Outlet />
+      {/* Workspace Area */}
+      <div className={`best-hire-main-workspace ${sidebarOpen ? 'open' : 'closed'}`}>
+        <header className="best-hire-top-header">
+          <div className="header-left">
+            <span className="header-breadcrumb">Candidate Hub</span>
+          </div>
+          <div className="header-right">
+            <div className="header-notification">🔔</div>
+            <div className="header-divider"></div>
+            <span className="header-user-display">{user?.fullName || 'User'}</span>
+          </div>
+        </header>
+
+        <main className="best-hire-content-body">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

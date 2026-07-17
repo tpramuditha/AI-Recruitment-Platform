@@ -25,24 +25,16 @@ const CandidateApplicationsPage = () => {
     fetchApplications();
   }, []);
 
-  const getStatusBadgeStyle = (status) => {
-    const colors = {
-      'Submitted': '#2196f3',
-      'UnderReview': '#ff9800',
-      'Shortlisted': '#4caf50',
-      'Rejected': '#f44336',
-      'Hired': '#1b5e20',
-    };
-    return {
-      display: 'inline-block',
-      padding: '2px 10px',
-      borderRadius: '12px',
-      fontSize: '12px',
-      fontWeight: '500',
-      backgroundColor: colors[status] || '#999',
-      color: '#fff',
-    };
+  const getStatusBadgeClass = (status) => {
+  const map = {
+    'Submitted': 'badge-submitted',
+    'UnderReview': 'badge-review',
+    'Shortlisted': 'badge-shortlisted',
+    'Rejected': 'badge-rejected',
+    'Hired': 'badge-hired',
   };
+  return `best-hire-badge ${map[status] || 'badge-default'}`;
+};
 
   if (loading) {
     return <div className="candidate-applications-loading">Loading applications...</div>;
@@ -57,30 +49,33 @@ const CandidateApplicationsPage = () => {
       {applications.length === 0 ? (
         <p>You haven't applied to any jobs yet.</p>
       ) : (
-        <table className="candidate-applications-table">
-          <thead>
-            <tr>
-              <th>Job</th>
-              <th>Department</th>
-              <th>Applied Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.map((app) => (
-              <tr key={app.id}>
-                <td>{app.jobTitle || 'Unknown'}</td>
-                <td>{app.jobDepartment || 'N/A'}</td>
-                <td>{new Date(app.appliedAt).toLocaleDateString()}</td>
-                <td>
-                  <span style={getStatusBadgeStyle(app.status)}>
-                    {app.status}
-                  </span>
-                </td>
+        // inside return block instead of <table>
+        <div className="best-hire-table-wrapper">
+          <table className="candidate-applications-table">
+            <thead>
+              <tr>
+                <th>Job Opening</th>
+                <th>Department</th>
+                <th>Applied Date</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {applications.map((app) => (
+                <tr key={app.id}>
+                  <td><span className="table-job-bold">{app.jobTitle || 'Unknown'}</span></td>
+                  <td><span className="table-text-muted">{app.jobDepartment || 'N/A'}</span></td>
+                  <td><span className="table-text-muted">{new Date(app.appliedAt).toLocaleDateString()}</span></td>
+                  <td>
+                    <span className={getStatusBadgeClass(app.status)}>
+                      {app.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

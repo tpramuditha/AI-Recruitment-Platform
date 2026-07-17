@@ -1,12 +1,14 @@
-/* src/pages/candidate/CandidateInterviewsPage.css */
-
 .candidate-interviews-container {
-  max-width: 1000px;
-  margin: 0 auto;
+  /* Removed max-width and margin auto restriction to let it fill the workspace naturally */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .candidate-interviews-title {
-  font-size: 28px;
-  color: #1a1a2e;
-  margin-bottom: 20px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a; /* Matched to Slate 900 */
+  margin: 0;
 }

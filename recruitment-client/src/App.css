@@ -182,3 +182,16 @@
     border-right-color: var(--border);
   }
 }
+
+:root {
+  --pf-primary: #1e3a8a;       /* Deep slate blue */
+  --pf-accent: #3b82f6;        /* Bright brand blue */
+  --pf-success: #10b981;       /* Active green */
+  --pf-text-dark: #1f2937;     /* High-contrast slate */
+  --pf-text-muted: #6b7280;    /* Light gray for hints */
+  --pf-bg-light: #f8fafc;      /* Background gray */
+  --pf-border: #e2e8f0;        /* Subtle border */
+  --pf-error: #ef4444;         /* Error state */
+  --pf-radius: 12px;
+  --pf-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

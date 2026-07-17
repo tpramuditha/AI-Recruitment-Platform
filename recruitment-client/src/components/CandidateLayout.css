@@ -1,187 +1,246 @@
-/* src/components/CandidateLayout.css */
-
-.candidate-layout-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fa;
+:root {
+  --primary-color: #4f46e5;       /* Premium Indigo */
+  --sidebar-bg: #0f172a;          /* Deep Slate 900 */
+  --sidebar-hover: #1e293b;       /* Slate 800 */
+  --bg-workspace: #f8fafc;        /* Soft White Slate 50 */
+  --border-color: #e2e8f0;        /* Slate 200 */
+  --text-main: #334155;           /* Slate 700 */
+  --text-muted: #64748b;          /* Slate 500 */
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
 }
 
-/* ===== Sidebar ===== */
-.candidate-sidebar {
+.best-hire-candidate-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-workspace);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-main);
+}
+
+/* ===== Sidebar Architecture ===== */
+.best-hire-sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  background-color: #1a1a2e;
-  color: #fff;
-  transition: width 0.3s ease;
+  background-color: var(--sidebar-bg);
+  color: #f1f5f9;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  overflow: hidden;
+  z-index: 100;
+  border-right: 1px solid #1e293b;
 }
 
-.candidate-sidebar.open {
-  width: 260px;
-}
+.best-hire-sidebar.open { width: 250px; }
+.best-hire-sidebar.closed { width: 72px; }
 
-.candidate-sidebar.closed {
-  width: 70px;
-}
-
-.candidate-sidebar-header {
-  padding: 20px;
+.best-hire-sidebar-header {
+  height: 64px;
+  padding: 0 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #1e293b;
 }
 
-.candidate-logo {
-  margin: 0;
-  font-size: 20px;
-  color: #fff;
-  white-space: nowrap;
+.best-hire-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.candidate-toggle-btn {
-  background: none;
-  border: none;
+.best-hire-logo-icon {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-color);
   color: #fff;
-  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.best-hire-logo-text {
   font-size: 16px;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.candidate-toggle-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* ===== Navigation ===== */
-.candidate-nav {
-  flex: 1;
-  padding: 20px 0;
-}
-
-.candidate-nav-link {
-  display: flex;
-  align-items: center;
-  padding: 12px 20px;
-  color: #aaa;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border-left: 3px solid transparent;
-  gap: 12px;
-}
-
-.candidate-nav-link:hover {
+  font-weight: 600;
   color: #fff;
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.candidate-nav-link.active {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-left-color: #2196f3;
-}
-
-.candidate-nav-icon {
-  font-size: 20px;
-  min-width: 30px;
-}
-
-.candidate-nav-label {
-  font-size: 14px;
   white-space: nowrap;
 }
 
-/* ===== Sidebar Footer ===== */
-.candidate-sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.best-hire-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.candidate-user-info {
+.best-hire-toggle-btn:hover {
+  background: var(--sidebar-hover);
+  color: #fff;
+}
+
+/* ===== Links & Smooth Hover Effect ===== */
+.best-hire-nav {
+  flex: 1;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.best-hire-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  color: #94a3b8;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 12px;
+}
+
+.best-hire-nav-link:hover {
+  color: #fff;
+  background-color: var(--sidebar-hover);
+  transform: translateX(4px);
+}
+
+.best-hire-nav-link.active {
+  color: #fff;
+  background-color: var(--primary-color);
+}
+
+.best-hire-nav-icon {
+  font-size: 18px;
+  width: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.best-hire-nav-label {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ===== Profile Footer Options ===== */
+.best-hire-sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.best-hire-user-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
 }
 
-.candidate-user-avatar {
+.best-hire-user-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: #2196f3;
+  background-color: #818cf8;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
+}
+
+.best-hire-user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.best-hire-user-name {
+  font-size: 13px;
+  font-weight: 600;
   color: #fff;
+  white-space: nowrap;
 }
 
-.candidate-user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
+.best-hire-user-role {
+  font-size: 11px;
+  color: #64748b;
 }
 
-.candidate-user-role {
-  font-size: 12px;
-  color: #aaa;
-}
-
-.candidate-logout-btn {
+.best-hire-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
-  padding: 8px 12px;
-  background-color: #dc3545;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
+  padding: 8px;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 8px;
+  font-size: 13px;
   cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  transition: all 0.2s;
 }
 
-.candidate-logout-btn:hover {
-  background-color: #c82333;
+.best-hire-logout-btn:hover {
+  background-color: #ef4444;
+  color: #fff;
 }
 
-/* ===== Main Content ===== */
-.candidate-main-content {
+/* ===== Responsive Workspace Fix ===== */
+.best-hire-main-workspace {
   flex: 1;
-  padding: 24px;
-  transition: margin-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
 }
 
-.candidate-main-content.open {
-  margin-left: 260px;
+.best-hire-main-workspace.open { padding-left: 250px; }
+.best-hire-main-workspace.closed { padding-left: 72px; }
+
+.best-hire-top-header {
+  height: 64px;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.candidate-main-content.closed {
-  margin-left: 70px;
+.header-breadcrumb { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-notification { cursor: pointer; color: var(--text-muted); }
+.header-divider { width: 1px; height: 20px; background-color: var(--border-color); }
+.header-user-display { font-size: 14px; font-weight: 600; color: var(--text-main); }
+
+.best-hire-content-body {
+  padding: 32px 40px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-  .candidate-sidebar.open {
-    width: 200px;
-  }
-  
-  .candidate-main-content.open {
-    margin-left: 200px;
-  }
-  
-  .candidate-sidebar.closed {
-    width: 60px;
-  }
-  
-  .candidate-main-content.closed {
-    margin-left: 60px;
-  }
+@media (max-width: 900px) {
+  .best-hire-sidebar.open, .best-hire-sidebar.closed { width: 72px; }
+  .best-hire-sidebar.open .best-hire-logo-text,
+  .best-hire-sidebar.open .best-hire-nav-label,
+  .best-hire-sidebar.open .best-hire-user-details,
+  .best-hire-sidebar.open .best-hire-toggle-btn { display: none !important; }
+  .best-hire-main-workspace.open, .best-hire-main-workspace.closed { padding-left: 72px; }
+  .best-hire-sidebar.open .best-hire-logout-btn { font-size: 0; }
+  .best-hire-sidebar.open .best-hire-logout-btn .logout-icon { font-size: 16px; }
 }
