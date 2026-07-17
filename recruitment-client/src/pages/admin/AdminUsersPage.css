@@ -1,118 +1,112 @@
-/* src/pages/admin/AdminUsersPage.css */
-
-.admin-users-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.admin-users-title {
-  font-size: 28px;
-  color: #1a1a2e;
-  margin-bottom: 4px;
-}
-
-.admin-users-subtitle {
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 20px;
-}
-
-.admin-users-loading {
+.pf-header-split-row {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  font-size: 16px;
-  color: #666;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
-.admin-users-error {
-  padding: 12px;
-  background-color: #ffebee;
-  color: #c62828;
-  border-radius: 4px;
-  margin-bottom: 16px;
+.pf-badge-counter {
+  font-size: 13px;
+  color: var(--pf-text-muted);
+  background: #ffffff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--pf-border-color);
+  font-weight: 500;
 }
 
-.admin-users-stats {
-  margin-bottom: 16px;
-  padding: 12px;
-  background-color: #f5f7fa;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #555;
+.pf-table-card {
+  background-color: #ffffff;
+  border: 1px solid var(--pf-border-color);
+  border-radius: var(--pf-radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+  overflow: hidden;
 }
 
-.admin-users-table-wrapper {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  overflow-x: auto;
-}
-
-.admin-users-table {
+.pf-native-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
-}
-
-.admin-users-table th {
-  background-color: #f5f7fa;
-  padding: 12px 16px;
   text-align: left;
+  font-size: 14px;
+}
+
+.pf-native-table th {
+  background-color: #f8fafc;
+  padding: 14px 20px;
   font-weight: 600;
-  color: #333;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.admin-users-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #eee;
-}
-
-.admin-users-table tr:hover {
-  background-color: #f9f9f9;
-}
-
-.admin-role-select {
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
+  color: #475569;
+  border-bottom: 1px solid var(--pf-border-color);
   font-size: 13px;
+}
+
+.pf-native-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--pf-text-dark);
+  vertical-align: middle;
+}
+
+.pf-native-table tr:last-child td { border-bottom: none; }
+.pf-native-table tr:hover { background-color: #f8fafc; }
+.row-highlight-self { background-color: #faf5ff; }
+
+.pf-table-identity { display: flex; align-items: center; gap: 12px; }
+.pf-avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pf-identity-name { font-weight: 500; }
+.pf-cell-email { color: var(--pf-text-muted); font-size: 13px; }
+.pf-cell-date { color: var(--pf-text-muted); font-size: 13px; }
+
+.pf-table-dropdown {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--pf-border-color);
+  font-size: 13px;
+  color: var(--pf-text-dark);
+  background-color: #ffffff;
+  outline: none;
   cursor: pointer;
+  transition: var(--pf-transition);
 }
 
-.admin-role-select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.pf-table-dropdown:focus { border-color: var(--pf-sidebar-active); }
+.pf-table-dropdown:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.admin-self-tag {
-  font-size: 12px;
-  color: #666;
-  margin-left: 6px;
-}
-
-.admin-delete-btn {
-  padding: 4px 12px;
-  background-color: #dc3545;
-  color: #fff;
-  border: none;
+.pf-self-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pf-sidebar-active);
+  background: #eeebff;
+  padding: 2px 6px;
   border-radius: 4px;
+  margin-left: 8px;
+}
+
+.pf-btn-action-delete {
+  background: transparent;
+  border: none;
+  font-size: 14px;
   cursor: pointer;
-  font-size: 13px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: var(--pf-transition);
 }
 
-.admin-delete-btn:hover {
-  background-color: #c82333;
+.pf-btn-action-delete:hover:not(.disabled) {
+  background-color: #fef2f2;
+  transform: scale(1.1);
 }
 
-.admin-delete-btn-disabled {
-  padding: 4px 12px;
-  background-color: #ccc;
-  color: #666;
-  border: none;
-  border-radius: 4px;
-  cursor: not-allowed;
-  font-size: 13px;
-}
+.pf-btn-action-delete.disabled { opacity: 0.25; cursor: not-allowed; }
+.txt-center { text-align: center; }

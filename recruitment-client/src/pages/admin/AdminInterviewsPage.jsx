@@ -3,10 +3,13 @@ import './AdminInterviewsPage.css';
 
 const AdminInterviewsPage = () => {
   return (
-    <div className="admin-interviews-container">
-      <h1 className="admin-interviews-title">All Interviews Calendar</h1>
-      <p className="admin-interviews-subtitle">View all interviews scheduled across the platform</p>
-      <CalendarView role="Admin" />
+    <div className="pf-view-container animate-fade-in">
+      <h1 className="pf-view-title">Master Interview Schedule</h1>
+      <p className="pf-view-subtitle">Cross-platform validation of all active structural assessment sessions</p>
+      
+      <div className="pf-calendar-card-frame">
+        <CalendarView role="Admin" />
+      </div>
     </div>
   );
 };

@@ -1,18 +1,8 @@
-/* src/pages/admin/AdminInterviewsPage.css */
-
-.admin-interviews-container {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.admin-interviews-title {
-  font-size: 28px;
-  color: #1a1a2e;
-  margin-bottom: 4px;
-}
-
-.admin-interviews-subtitle {
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 20px;
+.pf-calendar-card-frame {
+  background-color: #ffffff;
+  border: 1px solid var(--pf-border-color);
+  border-radius: var(--pf-radius-lg);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+  margin-top: 4px;
 }

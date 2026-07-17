@@ -15,87 +15,107 @@ const AdminHomePage = () => {
       const response = await apiClient.get('/Admin/dashboard');
       setDashboard(response.data);
     } catch (err) {
-      setError('Failed to load dashboard data.');
+      setError('System details failed to populate.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDashboard();
-  }, []);
+  useEffect(() => { fetchDashboard(); }, []);
 
   if (loading) {
-    return <div className="admin-home-loading">Loading dashboard...</div>;
+    return (
+      <div className="pf-center-loader">
+        <div className="pf-spinner"></div>
+        <p>Syncing telemetry indices...</p>
+      </div>
+    );
   }
 
-  if (error) {
-    return <div className="admin-home-error">{error}</div>;
-  }
+  if (error) return <div className="pf-banner-error">⚠️ {error}</div>;
 
   return (
-    <div className="admin-home-container">
-      <h1 className="admin-home-title">Welcome back, {user?.fullName} 👋</h1>
-      <p className="admin-home-subtitle">System overview and analytics</p>
+    <div className="pf-view-container animate-fade-in">
+      <h1 className="pf-view-title">Welcome back, {user?.fullName || 'Admin'} 👋</h1>
+      <p className="pf-view-subtitle">System metrics control deck</p>
 
-      <div className="admin-stats-grid">
-        <div className="admin-stat-card">
-          <h3>Users</h3>
-          <p className="admin-stat-number">{dashboard?.users?.total || 0}</p>
-          <div className="admin-stat-details">
-            <span>👤 Candidates: {dashboard?.users?.byRole?.Candidate || 0}</span>
-            <span>👔 Recruiters: {dashboard?.users?.byRole?.Recruiter || 0}</span>
-            <span>📋 Managers: {dashboard?.users?.byRole?.HiringManager || 0}</span>
-            <span>⚙️ Admins: {dashboard?.users?.byRole?.Admin || 0}</span>
+      {/* Flat Clean Metric Cards Grid */}
+      <div className="pf-stats-grid">
+        <div className="pf-metric-box">
+          <div className="pf-box-top">
+            <span className="pf-box-label">Users Profile Pool</span>
+            <span className="pf-icon-badge">👥</span>
+          </div>
+          <div className="pf-big-stat">{dashboard?.users?.total || 0}</div>
+          <div className="pf-meta-inline-list">
+            <span>Cand: <strong>{dashboard?.users?.byRole?.Candidate || 0}</strong></span>
+            <span>Rec: <strong>{dashboard?.users?.byRole?.Recruiter || 0}</strong></span>
+            <span>Mgr: <strong>{dashboard?.users?.byRole?.HiringManager || 0}</strong></span>
           </div>
         </div>
 
-        <div className="admin-stat-card">
-          <h3>Jobs</h3>
-          <p className="admin-stat-number">{dashboard?.jobs?.total || 0}</p>
-          <div className="admin-stat-details">
-            <span>✅ Active: {dashboard?.jobs?.active || 0}</span>
-            <span>❌ Inactive: {dashboard?.jobs?.inactive || 0}</span>
+        <div className="pf-metric-box">
+          <div className="pf-box-top">
+            <span className="pf-box-label">Active Vacancies</span>
+            <span className="pf-icon-badge">💼</span>
+          </div>
+          <div className="pf-big-stat">{dashboard?.jobs?.total || 0}</div>
+          <div className="pf-meta-inline-list">
+            <span className="txt-success">Active: {dashboard?.jobs?.active || 0}</span>
+            <span className="txt-muted">Inactive: {dashboard?.jobs?.inactive || 0}</span>
           </div>
         </div>
 
-        <div className="admin-stat-card">
-          <h3>Applications</h3>
-          <p className="admin-stat-number">{dashboard?.applications?.total || 0}</p>
-          <div className="admin-stat-details">
-            <span>📩 Submitted: {dashboard?.applications?.byStatus?.Submitted || 0}</span>
-            <span>🔍 Review: {dashboard?.applications?.byStatus?.UnderReview || 0}</span>
-            <span>⭐ Shortlisted: {dashboard?.applications?.byStatus?.Shortlisted || 0}</span>
-            <span>❌ Rejected: {dashboard?.applications?.byStatus?.Rejected || 0}</span>
-            <span>🎉 Hired: {dashboard?.applications?.byStatus?.Hired || 0}</span>
+        <div className="pf-metric-box">
+          <div className="pf-box-top">
+            <span className="pf-box-label">Applications Pipeline</span>
+            <span className="pf-icon-badge">📋</span>
+          </div>
+          <div className="pf-big-stat">{dashboard?.applications?.total || 0}</div>
+          <div className="pf-meta-inline-list">
+            <span>Sub: {dashboard?.applications?.byStatus?.Submitted || 0}</span>
+            <span>Rev: {dashboard?.applications?.byStatus?.UnderReview || 0}</span>
+            <span>Hire: {dashboard?.applications?.byStatus?.Hired || 0}</span>
           </div>
         </div>
 
-        <div className="admin-stat-card">
-          <h3>Interviews</h3>
-          <p className="admin-stat-number">{dashboard?.interviews?.total || 0}</p>
-          <div className="admin-stat-details">
-            <span>📅 Scheduled: {dashboard?.interviews?.byStatus?.Scheduled || 0}</span>
-            <span>✅ Completed: {dashboard?.interviews?.byStatus?.Completed || 0}</span>
-            <span>❌ Cancelled: {dashboard?.interviews?.byStatus?.Cancelled || 0}</span>
+        <div className="pf-metric-box">
+          <div className="pf-box-top">
+            <span className="pf-box-label">Interviews Scheduled</span>
+            <span className="pf-icon-badge">📅</span>
+          </div>
+          <div className="pf-big-stat">{dashboard?.interviews?.total || 0}</div>
+          <div className="pf-meta-inline-list">
+            <span>Sched: {dashboard?.interviews?.byStatus?.Scheduled || 0}</span>
+            <span>Comp: {dashboard?.interviews?.byStatus?.Completed || 0}</span>
           </div>
         </div>
       </div>
 
-      <div className="admin-recent-activity">
-        <h2 className="admin-section-title">Recent Activity (Last 7 Days)</h2>
-        <div className="admin-activity-grid">
-          <div className="admin-activity-item">
-            <span className="admin-activity-icon">👤</span>
-            <span>New Users: {dashboard?.recentActivity?.newUsers || 0}</span>
+      {/* Recent Log Activity Card Block */}
+      <div className="pf-activity-panel">
+        <h3 className="pf-panel-heading">Recent Activity <span className="pf-sub-tag">7 days timeline</span></h3>
+        <div className="pf-activity-row-layout">
+          <div className="pf-activity-pill">
+            <span className="pf-pill-emoji">👤</span>
+            <div>
+              <div className="pf-pill-number">{dashboard?.recentActivity?.newUsers || 0}</div>
+              <div className="pf-pill-label">New Users Created</div>
+            </div>
           </div>
-          <div className="admin-activity-item">
-            <span className="admin-activity-icon">💼</span>
-            <span>New Jobs: {dashboard?.recentActivity?.newJobs || 0}</span>
+          <div className="pf-activity-pill">
+            <span className="pf-pill-emoji">💼</span>
+            <div>
+              <div className="pf-pill-number">{dashboard?.recentActivity?.newJobs || 0}</div>
+              <div className="pf-pill-label">New Roles Posted</div>
+            </div>
           </div>
-          <div className="admin-activity-item">
-            <span className="admin-activity-icon">📝</span>
-            <span>New Applications: {dashboard?.recentActivity?.newApplications || 0}</span>
+          <div className="pf-activity-pill">
+            <span className="pf-pill-emoji">📝</span>
+            <div>
+              <div className="pf-pill-number">{dashboard?.recentActivity?.newApplications || 0}</div>
+              <div className="pf-pill-label">New Applications</div>
+            </div>
           </div>
         </div>
       </div>

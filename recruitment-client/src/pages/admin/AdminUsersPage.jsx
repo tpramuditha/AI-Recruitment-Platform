@@ -17,97 +17,112 @@ const AdminUsersPage = () => {
       const response = await apiClient.get('/Admin/users');
       setUsers(response.data.users || []);
     } catch (err) {
-      setError('Failed to load users.');
+      setError('System directory could not be reached.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
 
   const handleRoleChange = async (userId, newRole) => {
-    if (!window.confirm(`Change this user's role to "${newRole}"?`)) return;
-
+    if (!window.confirm(`Reassign target account security tier to "${newRole}"?`)) return;
     setUpdating(true);
     try {
       await apiClient.put(`/Admin/users/${userId}/role`, { role: newRole });
       await fetchUsers();
     } catch (err) {
-      alert('Failed to update role.');
+      alert('Failed to update account authorization privileges.');
     } finally {
       setUpdating(false);
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-
+    if (!window.confirm('Permanently wipe this identity structure from the active database?')) return;
     setUpdating(true);
     try {
       await apiClient.delete(`/Admin/users/${userId}`);
       await fetchUsers();
     } catch (err) {
-      alert('Failed to delete user.');
+      alert('Account purging operation aborted by system.');
     } finally {
       setUpdating(false);
     }
   };
 
   if (loading) {
-    return <div className="admin-users-loading">Loading users...</div>;
+    return (
+      <div className="pf-center-loader">
+        <div className="pf-spinner"></div>
+        <p>Parsing directory registries...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="admin-users-container">
-      <h1 className="admin-users-title">User Management</h1>
-      <p className="admin-users-subtitle">Manage user accounts and roles</p>
-
-      {error && <div className="admin-users-error">{error}</div>}
-
-      <div className="admin-users-stats">
-        Total Users: <strong>{users.length}</strong>
+    <div className="pf-view-container animate-fade-in">
+      <div className="pf-header-split-row">
+        <div>
+          <h1 className="pf-view-title">User Management</h1>
+          <p className="pf-view-subtitle">Audit workspace identities and access permissions</p>
+        </div>
+        <div className="pf-badge-counter">
+          Total Base Accounts: <strong>{users.length}</strong>
+        </div>
       </div>
 
-      <div className="admin-users-table-wrapper">
-        <table className="admin-users-table">
+      {error && <div className="pf-banner-error">{error}</div>}
+
+      {/* Clean high-density spreadsheet grid wrapper */}
+      <div className="pf-table-card">
+        <table className="pf-native-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th>Profile Name</th>
+              <th>Email Address</th>
+              <th>System Access Role</th>
+              <th>Registration Date</th>
+              <th className="txt-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id}>
-                <td>{u.fullName}</td>
-                <td>{u.email}</td>
+              <tr key={u.id} className={u.id === user?.id ? 'row-highlight-self' : ''}>
                 <td>
-                  <select
-                    value={u.role}
-                    onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                    disabled={updating || u.id === user?.id}
-                    className="admin-role-select"
-                  >
-                    <option value="Candidate">Candidate</option>
-                    <option value="Recruiter">Recruiter</option>
-                    <option value="HiringManager">Hiring Manager</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                  {u.id === user?.id && <span className="admin-self-tag">(you)</span>}
+                  <div className="pf-table-identity">
+                    <div className="pf-avatar-small">
+                      {u.fullName ? u.fullName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span className="pf-identity-name">{u.fullName}</span>
+                  </div>
                 </td>
-                <td>{new Date(u.createdAt).toLocaleDateString()}</td>
+                <td className="pf-cell-email">{u.email}</td>
                 <td>
+                  <div className="pf-select-wrapper">
+                    <select
+                      value={u.role}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                      disabled={updating || u.id === user?.id}
+                      className="pf-table-dropdown"
+                    >
+                      <option value="Candidate">Candidate</option>
+                      <option value="Recruiter">Recruiter</option>
+                      <option value="HiringManager">Hiring Manager</option>
+                      <option value="Admin">Admin</option>
+                    </select>
+                  </div>
+                  {u.id === user?.id && <span className="pf-self-label">You</span>}
+                </td>
+                <td className="pf-cell-date">{new Date(u.createdAt).toLocaleDateString()}</td>
+                <td className="txt-center">
                   <button
                     onClick={() => handleDeleteUser(u.id)}
                     disabled={updating || u.id === user?.id}
-                    className={u.id === user?.id ? 'admin-delete-btn-disabled' : 'admin-delete-btn'}
+                    className={`pf-btn-action-delete ${u.id === user?.id ? 'disabled' : ''}`}
+                    title={u.id === user?.id ? 'Self deletion protected' : 'Delete user profile'}
                   >
-                    Delete
+                    🗑️
                   </button>
                 </td>
               </tr>

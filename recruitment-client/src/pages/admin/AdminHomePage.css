@@ -1,103 +1,47 @@
-/* src/pages/admin/AdminHomePage.css */
+.pf-view-container { max-width: 1200px; margin: 0 auto; }
+.pf-view-title { font-size: 26px; font-weight: 700; color: var(--pf-text-dark); margin: 0; letter-spacing: -0.02em; }
+.pf-view-subtitle { font-size: 14px; color: var(--pf-text-muted); margin: 4px 0 28px 0; }
 
-.admin-home-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.admin-home-title {
-  font-size: 28px;
-  color: #1a1a2e;
-  margin-bottom: 4px;
-}
-
-.admin-home-subtitle {
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 24px;
-}
-
-.admin-home-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  font-size: 16px;
-  color: #666;
-}
-
-.admin-home-error {
-  padding: 12px;
-  background-color: #ffebee;
-  color: #c62828;
-  border-radius: 4px;
-}
-
-.admin-stats-grid {
+.pf-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
 }
 
-.admin-stat-card {
-  padding: 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.pf-metric-box {
+  background: #ffffff;
+  border: 1px solid var(--pf-border-color);
+  border-radius: var(--pf-radius-lg);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+  transition: var(--pf-transition);
 }
 
-.admin-stat-card h3 {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+.pf-metric-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.04);
+  border-color: #cbd5e1;
 }
 
-.admin-stat-number {
-  font-size: 32px;
-  font-weight: bold;
-  margin: 8px 0;
-  color: #1a1a2e;
-}
+.pf-box-top { display: flex; justify-content: space-between; align-items: center; }
+.pf-box-label { font-size: 13px; font-weight: 500; color: var(--pf-text-muted); }
+.pf-icon-badge { font-size: 16px; opacity: 0.8; }
+.pf-big-stat { font-size: 32px; font-weight: 700; color: var(--pf-text-dark); margin: 12px 0; }
+.pf-meta-inline-list { display: flex; gap: 12px; font-size: 12px; color: var(--pf-text-muted); border-top: 1px solid #f1f5f9; padding-top: 12px; }
 
-.admin-stat-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 14px;
-  color: #555;
-}
+.txt-success { color: #16a34a; font-weight: 500; }
+.pf-activity-panel { background: #ffffff; border: 1px solid var(--pf-border-color); border-radius: var(--pf-radius-lg); padding: 28px; }
+.pf-panel-heading { font-size: 15px; font-weight: 600; margin: 0 0 20px 0; color: var(--pf-text-dark); }
+.pf-sub-tag { font-size: 12px; font-weight: 400; color: var(--pf-text-muted); margin-left: 6px; }
 
-.admin-recent-activity {
-  padding: 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #f5f5f5;
-}
+.pf-activity-row-layout { display: flex; gap: 16px; flex-wrap: wrap; }
+.pf-activity-pill { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 16px; background-color: #f8fafc; padding: 16px 20px; border-radius: var(--pf-radius-md); border: 1px solid var(--pf-border-color); }
+.pf-pill-emoji { font-size: 24px; }
+.pf-pill-number { font-size: 18px; font-weight: 700; color: var(--pf-text-dark); }
+.pf-pill-label { font-size: 12px; color: var(--pf-text-muted); margin-top: 1px; }
 
-.admin-section-title {
-  font-size: 18px;
-  color: #1a1a2e;
-  margin-bottom: 12px;
-}
-
-.admin-activity-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.admin-activity-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: #fff;
-  border-radius: 4px;
-}
-
-.admin-activity-icon {
-  font-size: 20px;
-}
+.pf-center-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 12px; color: var(--pf-text-muted); font-size: 13px; }
+.pf-spinner { width: 24px; height: 24px; border: 2.5px solid var(--pf-border-color); border-top-color: var(--pf-sidebar-active); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pf-banner-error { padding: 12px 16px; background-color: #fef2f2; color: #dc2626; border-radius: 6px; font-size: 14px; border: 1px solid #fee2e2; }
