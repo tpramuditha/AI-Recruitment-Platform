@@ -1,28 +1,43 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import './AuthPage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
-
+    setError('');
+    
     try {
-      const response = await apiClient.post('/Auth/login', { email, password });
+      // 1. Fire the actual API call
+      const response = await apiClient.post('/Auth/login', {
+        email: formData.email,
+        password: formData.password
+      });
+
+      // 2. Extract user and token exactly like your old code
       const { token, user } = response.data;
 
-      login(user, token);
+      // 3. Call login with both parameters as expected by your context
+      if (login) {
+        login(user, token);
+      }
 
-      // Redirect based on role
+      // 4. Role-based redirection fully restored from your original code
       const role = user.role;
       if (role === 'Admin') {
         navigate('/admin');
@@ -35,153 +50,85 @@ const LoginPage = () => {
       } else {
         navigate('/');
       }
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(`❌ ${msg}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Recruitment Platform</h1>
-        <h2 style={styles.subtitle}>Login</h2>
-
-        <form onSubmit={handleLogin}>
-          <div style={styles.field}>
-            <label style={styles.label}>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-              disabled={loading}
-              placeholder="Enter your email"
-            />
+    <div className="pf-auth-container">
+      {/* Left side banner */}
+      <div className="pf-auth-banner">
+        <div className="pf-banner-blob blob-1"></div>
+        <div className="pf-banner-blob blob-2"></div>
+        
+        <div className="pf-banner-header">
+          <div className="pf-app-logo">
+            Best<span>Hire</span>
           </div>
+        </div>
+        
+        <div className="pf-banner-body">
+          <h2 className="pf-banner-title">Empowering your hiring lifecycle.</h2>
+          <p className="pf-banner-text">
+            Join thousands of modern HR teams managing candidate streams, extracting technical capabilities with AI, and securing the best talent effortlessly.
+          </p>
+        </div>
+        
+        <div className="pf-banner-footer">
+          &copy; {new Date().getFullYear()} Best Hire. All rights reserved.
+        </div>
+      </div>
 
-          <div style={styles.field}>
-            <label style={styles.label}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={styles.input}
-              disabled={loading}
-              placeholder="Enter your password"
-            />
-          </div>
+      {/* Right side form */}
+      <div className="pf-auth-form-side">
+        <div className="pf-form-card">
+          <h1 className="pf-form-title">Welcome back</h1>
+          <p className="pf-form-subtitle">
+            Don't have an account yet? <Link to="/register">Create an account</Link>
+          </p>
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? 'Logging in...' : 'Log In'}
-          </button>
-        </form>
+          {error && <div className="pf-error-message">{error}</div>}
 
-        {error && <p style={styles.error}>{error}</p>}
+          <form onSubmit={handleLogin}>
+            <div className="pf-input-group">
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder=" "
+                value={formData.email}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              <label>Email Address</label>
+            </div>
 
-        <div style={styles.registerLink}>
-          <p>Don't have an account? <Link to="/register" style={styles.link}>Register here</Link></p>
-          <p style={styles.hint}>Demo Accounts: malindu@gmail.com / 123 (Recruiter)</p>
+            <div className="pf-input-group">
+              <input
+                type="password"
+                name="password"
+                required
+                placeholder=" "
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              <label>Password</label>
+            </div>
+
+            <button type="submit" disabled={loading} className="pf-btn-primary">
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
         </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f0f2f5',
-    fontFamily: 'sans-serif',
-  },
-  card: {
-    maxWidth: '400px',
-    width: '100%',
-    padding: '40px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-  },
-  title: {
-    margin: '0 0 8px 0',
-    color: '#1a1a2e',
-    fontSize: '24px',
-  },
-  subtitle: {
-    margin: '0 0 24px 0',
-    color: '#555',
-    fontSize: '18px',
-    fontWeight: 'normal',
-  },
-  field: {
-    marginBottom: '16px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '4px',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px',
-    boxSizing: 'border-box',
-  },
-  button: {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#1a73e8',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginTop: '8px',
-  },
-  button: {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#1a73e8',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginTop: '8px',
-  },
-  error: {
-    color: '#d32f2f',
-    marginTop: '12px',
-    fontSize: '14px',
-    textAlign: 'center',
-  },
-  registerLink: {
-    marginTop: '20px',
-    textAlign: 'center',
-    fontSize: '14px',
-    color: '#666',
-  },
-  link: {
-    color: '#1a73e8',
-    textDecoration: 'none',
-  },
-  hint: {
-    fontSize: '12px',
-    color: '#999',
-    marginTop: '8px',
-  }
 };
 
 export default LoginPage;

@@ -1,86 +1,39 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import './AuthPage.css';
 
 const UnauthorizedPage = () => {
-  const { user } = useAuth();
-
-  // Get redirect path based on role (inline logic)
-  const getRedirectPath = (role) => {
-    switch (role) {
-      case 'Admin': return '/admin';
-      case 'Recruiter': return '/recruiter';
-      case 'HiringManager': return '/manager';
-      case 'Candidate': return '/candidate';
-      default: return '/login';
-    }
-  };
-
-  const redirectPath = user ? getRedirectPath(user.role) : '/login';
+  const navigate = useNavigate();
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.icon}>🚫</h1>
-        <h2 style={styles.title}>Access Denied</h2>
-        <p style={styles.message}>
-          You don't have permission to view this page.
+    <div className="pf-unauthorized-container">
+      <div className="pf-unauthorized-card">
+        <div className="pf-unauthorized-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+        
+        <h1 className="pf-form-title" style={{ marginBottom: '1rem' }}>Access Denied</h1>
+        <p className="pf-form-subtitle" style={{ marginBottom: '2.5rem', lineHeight: '1.5' }}>
+          It looks like you don't have permission to access this resource. Please make sure you are signed in with the correct role privileges.
         </p>
-        {user && (
-          <p style={styles.userInfo}>
-            Your role: <strong>{user.role}</strong>
-          </p>
-        )}
-        <Link to={redirectPath} style={styles.link}>
-          Go back to your dashboard
-        </Link>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => navigate('/login')} className="pf-btn-primary">
+            Back to Sign In
+          </button>
+          <button 
+            onClick={() => navigate(-1)} 
+            className="pf-btn-primary" 
+            style={{ backgroundColor: 'transparent', border: '1.5px solid var(--pf-border)', color: 'var(--pf-text-dark)' }}
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f0f2f5',
-    fontFamily: 'sans-serif',
-  },
-  card: {
-    maxWidth: '400px',
-    padding: '40px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-    textAlign: 'center',
-  },
-  icon: {
-    fontSize: '48px',
-    margin: '0 0 16px 0',
-  },
-  title: {
-    margin: '0 0 8px 0',
-    color: '#d32f2f',
-  },
-  message: {
-    margin: '0 0 16px 0',
-    color: '#555',
-  },
-  userInfo: {
-    margin: '0 0 20px 0',
-    color: '#666',
-    fontSize: '14px',
-  },
-  link: {
-    display: 'inline-block',
-    padding: '10px 20px',
-    backgroundColor: '#1a73e8',
-    color: '#fff',
-    textDecoration: 'none',
-    borderRadius: '4px',
-    fontSize: '14px',
-  },
 };
 
 export default UnauthorizedPage;
