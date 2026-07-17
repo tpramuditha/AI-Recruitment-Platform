@@ -1,160 +1,191 @@
-/* src/components/ManagerLayout.css */
-
-.manager-layout-container {
+.pf-layout-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: var(--pf-bg-main);
+  font-family: var(--pf-font);
 }
 
-.manager-sidebar {
+.pf-sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  background-color: #1a1a2e;
+  background-color: var(--pf-sidebar-bg);
   color: #fff;
-  transition: width 0.3s ease;
+  transition: var(--pf-transition);
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  overflow: hidden;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
 }
 
-.manager-sidebar.open {
-  width: 260px;
-}
+.pf-sidebar.open { width: 260px; }
+.pf-sidebar.closed { width: 76px; }
 
-.manager-sidebar.closed {
-  width: 70px;
-}
-
-.manager-sidebar-header {
-  padding: 20px;
+.pf-sidebar-header {
+  padding: 24px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.manager-logo {
+.pf-logo {
   margin: 0;
-  font-size: 20px;
-  color: #fff;
-  white-space: nowrap;
-}
-
-.manager-toggle-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-.manager-toggle-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.manager-nav {
-  flex: 1;
-  padding: 20px 0;
-}
-
-.manager-nav-link {
+  font-size: 18px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  color: #aaa;
+  gap: 10px;
+  color: #fff;
+}
+
+.logo-accent {
+  background-color: var(--pf-sidebar-active);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.pf-toggle-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: var(--pf-transition);
+}
+
+.pf-toggle-btn:hover {
+  color: #fff;
+  background: var(--pf-sidebar-active);
+}
+
+.pf-nav {
+  flex: 1;
+  padding: 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: #94a3b8;
   text-decoration: none;
-  transition: all 0.3s ease;
-  border-left: 3px solid transparent;
-  gap: 12px;
-}
-.manager-nav-link:hover {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.05);
-}
-.manager-nav-link.active {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-left-color: #ff9800;
-}
-.manager-nav-icon {
-  font-size: 20px;
-  min-width: 30px;
-}
-.manager-nav-label {
-  font-size: 14px;
-  white-space: nowrap;
+  border-radius: 8px;
+  transition: var(--pf-transition);
+  gap: 14px;
 }
 
-.manager-sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.pf-nav-link:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.03);
+  transform: translateX(4px);
 }
 
-.manager-user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.manager-user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #ff9800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
+.pf-nav-link.active {
   color: #fff;
-}
-.manager-user-name {
-  font-size: 14px;
+  background-color: var(--pf-sidebar-active);
   font-weight: 500;
-  color: #fff;
-}
-.manager-user-role {
-  font-size: 12px;
-  color: #aaa;
 }
 
-.manager-logout-btn {
-  width: 100%;
-  padding: 8px 12px;
-  background-color: #dc3545;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
+.pf-nav-icon { font-size: 18px; }
+.pf-nav-label { font-size: 14px; white-space: nowrap; }
+
+.pf-sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pf-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf-user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #3b82f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-}
-.manager-logout-btn:hover {
-  background-color: #c82333;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
 }
 
-.manager-main-content {
+.pf-user-name { font-size: 13px; font-weight: 600; color: #fff; }
+.pf-user-role { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+.pf-logout-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--pf-transition);
+}
+
+.pf-logout-btn:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ff8a8a;
+}
+
+/* Page Viewport Core Styles */
+.pf-main-content {
   flex: 1;
-  padding: 24px;
-  transition: margin-left 0.3s ease;
-}
-.manager-main-content.open {
-  margin-left: 260px;
-}
-.manager-main-content.closed {
-  margin-left: 70px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: var(--pf-transition);
 }
 
-@media (max-width: 768px) {
-  .manager-sidebar.open { width: 200px; }
-  .manager-main-content.open { margin-left: 200px; }
-  .manager-sidebar.closed { width: 60px; }
-  .manager-main-content.closed { margin-left: 60px; }
+.pf-main-content.open { margin-left: 260px; }
+.pf-main-content.closed { margin-left: 76px; }
+
+.pf-top-bar {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--pf-border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.pf-workspace-title { font-size: 14px; color: var(--pf-text-muted); font-weight: 500; }
+.pf-top-actions { display: flex; align-items: center; gap: 20px; }
+.pf-notify-bell { font-size: 16px; cursor: pointer; color: #f59e0b; }
+.pf-profile-tag { font-size: 13px; color: var(--pf-text-dark); font-weight: 500; background: #f1f5f9; padding: 4px 10px; border-radius: 9999px; }
+
+.pf-page-render-area {
+  padding: 32px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Entrance Animation Keyframes */
+.animate-fade-in {
+  animation: pfFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes pfFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

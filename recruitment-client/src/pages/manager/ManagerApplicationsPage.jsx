@@ -20,30 +20,25 @@ const ManagerApplicationsPage = () => {
       const response = await apiClient.get('/Admin/applications/recent');
       setApplications(response.data.applications || []);
     } catch (err) {
-      setError('Failed to load applications.');
+      setError('Failed to load applications pipeline entries.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
+  useEffect(() => { fetchApplications(); }, []);
 
   const handleEvaluationChange = (applicationId, field, value) => {
     setEvaluationData({
       ...evaluationData,
-      [applicationId]: {
-        ...evaluationData[applicationId],
-        [field]: value,
-      },
+      [applicationId]: { ...evaluationData[applicationId], [field]: value },
     });
   };
 
   const handleSubmitEvaluation = async (applicationId) => {
     const data = evaluationData[applicationId];
     if (!data || !data.technicalScore || !data.communicationScore || !data.cultureFitScore || !data.recommendation) {
-      alert('Please fill in all required fields (scores and recommendation).');
+      alert('Please complete all required system scoring options.');
       return;
     }
     setSubmitting(true);
@@ -56,11 +51,11 @@ const ManagerApplicationsPage = () => {
         feedback: data.feedback || '',
         recommendation: data.recommendation,
       });
-      alert('Evaluation submitted successfully!');
+      alert('Evaluation record saved to system.');
       await fetchApplications();
       setEvaluationData({ ...evaluationData, [applicationId]: {} });
     } catch (err) {
-      alert('Failed to submit evaluation.');
+      alert('Failed to transmit metrics evaluation.');
     } finally {
       setSubmitting(false);
     }
@@ -83,42 +78,52 @@ const ManagerApplicationsPage = () => {
       const fileUrl = URL.createObjectURL(fileBlob);
       window.open(fileUrl, '_blank');
     } catch (error) {
-      console.error('Error fetching resume:', error);
-      alert('Failed to load resume. Candidate may not have uploaded one.');
+      alert('Resume file matching record index was not found.');
     }
   };
 
   if (loading) {
-    return <div className="manager-applications-loading">Loading applications...</div>;
+    return (
+      <div className="pf-loading-spinner-container">
+        <div className="pf-loading-spinner"></div>
+        <p>Syncing applications pipeline...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="manager-applications-container">
-      <h1 className="manager-applications-title">Recent Applications</h1>
-      <div className="manager-applications-stats">
-        Showing {filteredApplications.length} of {applications.length} applications
+    <div className="pf-page-fluid-wrapper animate-fade-in">
+      <div className="pf-view-header-block">
+        <div>
+          <h1 className="pf-main-view-title">Recent Applications</h1>
+          <p className="pf-main-view-subtitle">Review incoming profiles and complete scorecard assessments</p>
+        </div>
+        <div className="pf-counter-badge">
+          Showing {filteredApplications.length} of {applications.length} Items
+        </div>
       </div>
 
-      {error && <div className="manager-applications-error">{error}</div>}
+      {error && <div className="pf-system-alert-error">⚠️ {error}</div>}
 
-      <div className="manager-filter-section">
-        <div className="manager-filter-row">
-          <div className="manager-search-group">
+      {/* Clean Segmented Filter Controls */}
+      <div className="pf-filter-card-bar">
+        <div className="pf-filter-flex-row">
+          <div className="pf-input-search-container">
             <input
               type="text"
               placeholder="Search by candidate name, email, or job title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="manager-search-input"
+              className="pf-filter-native-input"
             />
           </div>
-          <div className="manager-filter-group">
+          <div className="pf-dropdown-container">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="manager-filter-select"
+              className="pf-filter-native-select"
             >
-              <option value="All">All Status</option>
+              <option value="All">All Status Options</option>
               <option value="Submitted">Submitted</option>
               <option value="UnderReview">Under Review</option>
               <option value="Shortlisted">Shortlisted</option>
@@ -126,128 +131,126 @@ const ManagerApplicationsPage = () => {
               <option value="Hired">Hired</option>
             </select>
           </div>
-          <button
-            onClick={() => { setSearchTerm(''); setStatusFilter('All'); }}
-            className="manager-clear-filters-btn"
-          >
-            Clear Filters
+          <button onClick={() => { setSearchTerm(''); setStatusFilter('All'); }} className="pf-filter-clear-btn">
+            Reset Filters
           </button>
         </div>
       </div>
 
       {filteredApplications.length === 0 ? (
-        <p className="manager-no-results">
-          {applications.length === 0 ? 'No applications to review.' : 'No applications match your filters.'}
-        </p>
+        <div className="pf-empty-state-card">
+          <p>{applications.length === 0 ? 'No applications present in workflow pipeline.' : 'No rows match filter metrics query.'}</p>
+        </div>
       ) : (
-        filteredApplications.map((app) => (
-          <div key={app.id} className="manager-app-card">
-            <div className="manager-app-header">
-              <h3 className="manager-app-title">{app.jobTitle || 'Unknown Job'}</h3>
-              <span style={getStatusBadgeStyle(app.status)}>{app.status}</span>
-            </div>
-            <p className="manager-app-detail"><strong>Candidate:</strong> {app.candidateName || 'Unknown'}</p>
-            <p className="manager-app-detail"><strong>Email:</strong> {app.candidateEmail || 'N/A'}</p>
-            <p className="manager-app-detail"><strong>Applied:</strong> {new Date(app.appliedAt).toLocaleDateString()}</p>
+        <div className="pf-cards-vertical-stack">
+          {filteredApplications.map((app) => {
+            const initialLetter = app.candidateName ? app.candidateName.charAt(0).toUpperCase() : 'C';
+            return (
+              <div key={app.id} className="pf-application-master-card">
+                
+                {/* Upper Identity Row Block */}
+                <div className="pf-app-card-top-row">
+                  <div className="pf-candidate-profile-block">
+                    <div className="pf-candidate-avatar">{initialLetter}</div>
+                    <div>
+                      <h3 className="pf-candidate-name">{app.candidateName || 'Unknown'}</h3>
+                      <span className="pf-candidate-email">{app.candidateEmail || 'N/A'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="pf-job-meta-block">
+                    <span className="pf-job-title-tag">{app.jobTitle || 'Unknown Job Title'}</span>
+                    <span className={`pf-status-badge badge-${app.status?.toLowerCase() || 'default'}`}>
+                      {app.status}
+                    </span>
+                  </div>
+                </div>
 
-            <button onClick={() => handleViewResume(app.candidateId)} className="manager-view-resume-btn">
-              View Resume
-            </button>
+                <div className="pf-card-line-divider"></div>
 
-            <div className="manager-eval-section">
-              <h4>Submit Evaluation</h4>
-              <div className="manager-eval-row">
-                <div className="manager-eval-group">
-                  <label>Technical Score (1-5)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={evaluationData[app.id]?.technicalScore || ''}
-                    onChange={(e) => handleEvaluationChange(app.id, 'technicalScore', e.target.value)}
-                    className="manager-eval-input"
-                  />
+                <div className="pf-app-card-mid-row">
+                  <span className="pf-application-date">Applied On: {new Date(app.appliedAt).toLocaleDateString()}</span>
+                  <button onClick={() => handleViewResume(app.candidateId)} className="pf-btn-secondary">
+                    📄 Open Candidate Resume
+                  </button>
                 </div>
-                <div className="manager-eval-group">
-                  <label>Communication Score (1-5)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={evaluationData[app.id]?.communicationScore || ''}
-                    onChange={(e) => handleEvaluationChange(app.id, 'communicationScore', e.target.value)}
-                    className="manager-eval-input"
-                  />
-                </div>
-                <div className="manager-eval-group">
-                  <label>Culture Fit Score (1-5)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={evaluationData[app.id]?.cultureFitScore || ''}
-                    onChange={(e) => handleEvaluationChange(app.id, 'cultureFitScore', e.target.value)}
-                    className="manager-eval-input"
-                  />
-                </div>
-              </div>
-              <div className="manager-eval-row">
-                <div className="manager-eval-group">
-                  <label>Feedback</label>
-                  <textarea
-                    value={evaluationData[app.id]?.feedback || ''}
-                    onChange={(e) => handleEvaluationChange(app.id, 'feedback', e.target.value)}
-                    rows={2}
-                    className="manager-eval-textarea"
-                  />
-                </div>
-                <div className="manager-eval-group">
-                  <label>Recommendation</label>
-                  <select
-                    value={evaluationData[app.id]?.recommendation || ''}
-                    onChange={(e) => handleEvaluationChange(app.id, 'recommendation', e.target.value)}
-                    className="manager-eval-select"
+
+                {/* Unified Sub-Form Scorecard Accordion Block */}
+                <div className="pf-evaluation-form-wrapper">
+                  <h4 className="pf-evaluation-form-heading">Submit Evaluation Metrics</h4>
+                  
+                  <div className="pf-form-grid-three-cols">
+                    <div className="pf-input-control-group">
+                      <label>Technical Competency (1-5)</label>
+                      <input
+                        type="number" min="1" max="5" placeholder="--"
+                        value={evaluationData[app.id]?.technicalScore || ''}
+                        onChange={(e) => handleEvaluationChange(app.id, 'technicalScore', e.target.value)}
+                        className="pf-field-input"
+                      />
+                    </div>
+                    <div className="pf-input-control-group">
+                      <label>Communication (1-5)</label>
+                      <input
+                        type="number" min="1" max="5" placeholder="--"
+                        value={evaluationData[app.id]?.communicationScore || ''}
+                        onChange={(e) => handleEvaluationChange(app.id, 'communicationScore', e.target.value)}
+                        className="pf-field-input"
+                      />
+                    </div>
+                    <div className="pf-input-control-group">
+                      <label>Culture Alignment (1-5)</label>
+                      <input
+                        type="number" min="1" max="5" placeholder="--"
+                        value={evaluationData[app.id]?.cultureFitScore || ''}
+                        onChange={(e) => handleEvaluationChange(app.id, 'cultureFitScore', e.target.value)}
+                        className="pf-field-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pf-form-grid-split">
+                    <div className="pf-input-control-group">
+                      <label>Internal Assessment Commentary</label>
+                      <textarea
+                        value={evaluationData[app.id]?.feedback || ''}
+                        onChange={(e) => handleEvaluationChange(app.id, 'feedback', e.target.value)}
+                        rows={2}
+                        placeholder="Add candidate notes..."
+                        className="pf-field-textarea"
+                      />
+                    </div>
+                    <div className="pf-input-control-group">
+                      <label>Final Action Decision</label>
+                      <select
+                        value={evaluationData[app.id]?.recommendation || ''}
+                        onChange={(e) => handleEvaluationChange(app.id, 'recommendation', e.target.value)}
+                        className="pf-field-select"
+                      >
+                        <option value="">Select option...</option>
+                        <option value="Hire">Hire</option>
+                        <option value="NoHire">No Hire</option>
+                        <option value="NextRound">Next Round</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleSubmitEvaluation(app.id)}
+                    disabled={submitting}
+                    className="pf-btn-primary-success"
                   >
-                    <option value="">Select...</option>
-                    <option value="Hire">Hire</option>
-                    <option value="NoHire">No Hire</option>
-                    <option value="NextRound">Next Round</option>
-                  </select>
+                    {submitting ? 'Transmitting Scorecard...' : 'Submit Evaluation Record'}
+                  </button>
                 </div>
+
               </div>
-              <button
-                onClick={() => handleSubmitEvaluation(app.id)}
-                disabled={submitting}
-                className="manager-submit-eval-btn"
-              >
-                {submitting ? 'Submitting...' : 'Submit Evaluation'}
-              </button>
-            </div>
-          </div>
-        ))
+            );
+          })}
+        </div>
       )}
     </div>
   );
-};
-
-// Helper function for status badges
-const getStatusBadgeStyle = (status) => {
-  const colors = {
-    'Submitted': '#2196f3',
-    'UnderReview': '#ff9800',
-    'Shortlisted': '#4caf50',
-    'Rejected': '#f44336',
-    'Hired': '#1b5e20',
-  };
-  return {
-    display: 'inline-block',
-    padding: '2px 10px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: '500',
-    backgroundColor: colors[status] || '#999',
-    color: '#fff',
-  };
 };
 
 export default ManagerApplicationsPage;

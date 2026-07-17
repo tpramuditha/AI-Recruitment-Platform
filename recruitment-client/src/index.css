@@ -43,6 +43,17 @@ tr:hover {
   position: relative;
 }
 
+:root {
+  --pf-sidebar-bg: #111625;        /* Premium Ultra Dark Navy */
+  --pf-sidebar-active: #4f46e5;    /* Vibrant Royal Violet Active State */
+  --pf-bg-main: #f8fafc;           /* Clean Off-white/Slate Page Background */
+  --pf-border-color: #e2e8f0;      /* Ultra-light Elegant Gray Lines */
+  --pf-text-dark: #0f172a;         /* High-contrast Bold Text Slate */
+  --pf-text-muted: #64748b;        /* Soft Professional Subtext Accent */
+  --pf-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --pf-radius: 12px;
+  --pf-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 
 

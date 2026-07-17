@@ -10,9 +10,9 @@ const ManagerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menuItems = [
-    { path: '/manager', label: ' Home', icon: '🏠' },
-    { path: '/manager/applications', label: ' Recent Applications', icon: '📋' },
-    { path: '/manager/interviews', label: ' My Interview Schedule', icon: '📅' },
+    { path: '/manager', label: 'Dashboard', icon: '📊' },
+    { path: '/manager/applications', label: 'Recent Applications', icon: '💼' },
+    { path: '/manager/interviews', label: 'Interview Calendar', icon: '📅' },
   ];
 
   const handleLogout = () => {
@@ -20,56 +20,65 @@ const ManagerLayout = () => {
     navigate('/login');
   };
 
+  const initial = user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'M';
+
   return (
-    <div className="manager-layout-container">
-      <div className={`manager-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="manager-sidebar-header">
-          <h2 className="manager-logo">
-            {sidebarOpen ? '📋 Hiring Manager' : '📋'}
+    <div className="pf-layout-container">
+      {/* Premium Dark Navigation Sidebar */}
+      <aside className={`pf-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+        <div className="pf-sidebar-header">
+          <h2 className="pf-logo">
+            <span className="logo-accent">BH</span>
+            {sidebarOpen && <span className="logo-text">Best Hire</span>}
           </h2>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="manager-toggle-btn"
-          >
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="pf-toggle-btn" aria-label="Toggle Navigation">
             {sidebarOpen ? '◀' : '▶'}
           </button>
         </div>
 
-        <nav className="manager-nav">
+        <nav className="pf-nav">
           {menuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`manager-nav-link ${
-                location.pathname === item.path ? 'active' : ''
-              }`}
+              className={`pf-nav-link ${location.pathname === item.path ? 'active' : ''}`}
             >
-              <span className="manager-nav-icon">{item.icon}</span>
-              {sidebarOpen && <span className="manager-nav-label">{item.label}</span>}
+              <span className="pf-nav-icon">{item.icon}</span>
+              {sidebarOpen && <span className="pf-nav-label">{item.label}</span>}
             </Link>
           ))}
         </nav>
 
-        <div className="manager-sidebar-footer">
-          <div className="manager-user-info">
-            <div className="manager-user-avatar">
-              {user?.fullName?.charAt(0) || 'M'}
-            </div>
+        <div className="pf-sidebar-footer">
+          <div className="pf-user-info">
+            <div className="pf-user-avatar">{initial}</div>
             {sidebarOpen && (
-              <div>
-                <div className="manager-user-name">{user?.fullName || 'Manager'}</div>
-                <div className="manager-user-role">{user?.role || 'Role'}</div>
+              <div className="pf-user-meta animate-fade-in">
+                <div className="pf-user-name">{user?.fullName || 'Manager Test'}</div>
+                <div className="pf-user-role">Hiring Manager</div>
               </div>
             )}
           </div>
-          <button onClick={handleLogout} className="manager-logout-btn">
-             {sidebarOpen && 'Logout'}
+          <button onClick={handleLogout} className="pf-logout-btn">
+            🔑 {sidebarOpen && 'Sign Out'}
           </button>
         </div>
-      </div>
+      </aside>
 
-      <div className={`manager-main-content ${sidebarOpen ? 'open' : 'closed'}`}>
-        <Outlet />
+      {/* Main Viewport Core Area */}
+      <div className={`pf-main-content ${sidebarOpen ? 'open' : 'closed'}`}>
+        {/* Fixed Header Workspace Banner */}
+        <header className="pf-top-bar">
+          <div className="pf-workspace-title">Manager Space</div>
+          <div className="pf-top-actions">
+            <span className="pf-notify-bell">🔔</span>
+            <span className="pf-profile-tag">{user?.fullName?.toLowerCase() || 'manager'}</span>
+          </div>
+        </header>
+
+        <main className="pf-page-render-area">
+          <Outlet />
+        </main>
       </div>
     </div>
   );
