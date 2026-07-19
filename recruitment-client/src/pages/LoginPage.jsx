@@ -121,6 +121,18 @@ const LoginPage = () => {
               <label>Password</label>
             </div>
 
+            {/* PeopleForce styled contextual actions link */}
+            <div className="pf-form-actions-row">
+              <button 
+                type="button" 
+                className="pf-link-btn" 
+                onClick={() => toggleView('forgot')}
+                disabled={loading}
+              >
+                Forgot password?
+              </button>
+            </div>
+
             <button type="submit" disabled={loading} className="pf-btn-primary">
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
