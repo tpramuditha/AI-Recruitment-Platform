@@ -60,7 +60,7 @@ const RecruiterHomePage = () => {
 
   return (
     <div className="recruiter-home-container">
-      <h1 className="recruiter-home-title">Welcome back, {user?.fullName} 👋</h1>
+      <h1 className="recruiter-home-title">Welcome back, {user?.fullName} </h1>
       <p className="recruiter-home-subtitle">Here's what's happening with your job postings</p>
 
       <div className="recruiter-stats-grid">

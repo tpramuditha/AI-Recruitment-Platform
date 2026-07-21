@@ -8,7 +8,7 @@ const CandidateHomePage = () => {
   return (
     <div className="candidate-home-container">
       <div>
-        <h1 className="candidate-home-title">Welcome back, {user?.fullName} 👋</h1>
+        <h1 className="candidate-home-title">Welcome back, {user?.fullName} </h1>
         <p className="candidate-home-subtitle">Your personalized recruitment hub</p>
       </div>
 
