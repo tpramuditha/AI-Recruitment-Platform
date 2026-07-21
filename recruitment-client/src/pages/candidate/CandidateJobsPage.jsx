@@ -14,10 +14,11 @@ const CandidateJobsPage = () => {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/Jobs');
+      // ✅ Use the AI endpoint to get jobs with match scores
+      const response = await apiClient.get('/AI/jobs/recommended');
       setJobs(response.data);
     } catch (err) {
-      setError('Failed to load jobs.');
+      setError('Failed to load jobs with match scores.');
     } finally {
       setLoading(false);
     }
@@ -42,6 +43,23 @@ const CandidateJobsPage = () => {
     }
   };
 
+  // Helper for match score badge color
+  const getMatchScoreStyle = (score) => {
+    let backgroundColor = '#9e9e9e'; // grey
+    if (score >= 70) backgroundColor = '#4caf50'; // green
+    else if (score >= 40) backgroundColor = '#ff9800'; // orange
+    return {
+      display: 'inline-block',
+      padding: '4px 12px',
+      borderRadius: '16px',
+      fontSize: '13px',
+      fontWeight: '600',
+      color: '#fff',
+      backgroundColor: backgroundColor,
+      marginLeft: '8px',
+    };
+  };
+
   if (loading) {
     return <div className="candidate-jobs-loading">Loading jobs...</div>;
   }
@@ -59,7 +77,13 @@ const CandidateJobsPage = () => {
         <div className="candidate-jobs-grid">
           {jobs.map((job) => (
             <div key={job.id} className="candidate-job-card">
-              <h3 className="candidate-job-title">{job.title}</h3>
+              <div className="candidate-job-header">
+                <h3 className="candidate-job-title">{job.title}</h3>
+                {/* ✅ Display Match Score */}
+                <span style={getMatchScoreStyle(job.matchScore)}>
+                  {job.matchPercentage || '0%'} Match
+                </span>
+              </div>
               <p className="candidate-job-detail"><strong>Department:</strong> {job.department}</p>
               <p className="candidate-job-detail"><strong>Location:</strong> {job.location}</p>
               <p className="candidate-job-detail"><strong>Type:</strong> {job.employmentType}</p>
