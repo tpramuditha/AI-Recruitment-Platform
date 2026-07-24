@@ -117,6 +117,112 @@ namespace RecruitmentPlatform.API.Controllers
                 return StatusCode(500, new { message = "Failed to extract skills. Please try again later." });
             }
         }
+
+        // GET: api/AI/candidates/ranked/{jobId}
+        [HttpGet("candidates/ranked/{jobId}")]
+        [Authorize(Roles = "Recruiter,HiringManager,Admin")]
+        public async Task<IActionResult> GetRankedCandidates(int jobId)
+        {
+            var job = await _context.Jobs.FindAsync(jobId);
+            if (job == null)
+                return NotFound(new { message = "Job not found." });
+
+            List<RankedCandidate> ranked;
+            try
+            {
+                ranked = await _aiMatchingService.RankCandidatesForJobAsync(jobId);
+            }
+            catch
+            {
+                ranked = _aiMatchingService.RankCandidatesForJobSync(jobId);
+            }
+
+            return Ok(new
+            {
+                jobTitle = job.Title,
+                totalCandidates = ranked.Count,
+                rankedCandidates = ranked
+            });
+        }
+
+        // GET: api/AI/match-score?candidateId=&jobId=
+        [HttpGet("match-score")]
+        [Authorize(Roles = "Recruiter,HiringManager,Admin")]
+        public async Task<IActionResult> GetMatchScore([FromQuery] int candidateId, [FromQuery] int jobId)
+        {
+            var candidate = await _context.Candidates.FindAsync(candidateId);
+            var job = await _context.Jobs.FindAsync(jobId);
+            if (candidate == null || job == null)
+                return NotFound(new { message = "Candidate or Job not found." });
+
+            double score;
+            try { score = await _aiMatchingService.CalculateMatchScoreAsync(candidate.Skills ?? "", job.RequiredSkills ?? ""); }
+            catch { score = _aiMatchingService.CalculateMatchScore(candidate.Skills ?? "", job.RequiredSkills ?? ""); }
+
+            return Ok(new
+            {
+                candidateId,
+                jobId,
+                matchScore = Math.Round(score, 1),
+                matchPercentage = $"{Math.Round(score, 1)}%"
+            });
+        }
+
+        // GET: api/AI/candidates/ranked/application/{applicationId}
+        [HttpGet("candidates/ranked/application/{applicationId}")]
+        [Authorize(Roles = "Recruiter,HiringManager,Admin")]
+        public async Task<IActionResult> GetRankedCandidatesForApplication(int applicationId)
+        {
+            var application = await _context.Applications.FindAsync(applicationId);
+            if (application == null)
+                return NotFound(new { message = "Application not found." });
+
+            var job = await _context.Jobs.FindAsync(application.JobId);
+            if (job == null)
+                return NotFound(new { message = "Related job not found." });
+
+            List<RankedCandidate> ranked;
+            try { ranked = await _aiMatchingService.RankCandidatesForJobAsync(job.Id); }
+            catch { ranked = _aiMatchingService.RankCandidatesForJobSync(job.Id); }
+
+            return Ok(new
+            {
+                jobTitle = job.Title,
+                totalCandidates = ranked.Count,
+                rankedCandidates = ranked
+            });
+        }
+
+        // GET: api/AI/feedback/{applicationId}
+        [HttpGet("feedback/{applicationId}")]
+        [Authorize(Roles = "Recruiter,HiringManager,Admin")]
+        public async Task<IActionResult> GetFeedback(int applicationId)
+        {
+            var application = await _context.Applications
+                .Include(a => a.Candidate)
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.Id == applicationId);
+
+            if (application == null || application.Candidate == null || application.Job == null)
+                return NotFound(new { message = "Application, candidate, or job not found." });
+
+            double score;
+            try { score = await _aiMatchingService.CalculateMatchScoreAsync(application.Candidate.Skills ?? "", application.Job.RequiredSkills ?? ""); }
+            catch { score = _aiMatchingService.CalculateMatchScore(application.Candidate.Skills ?? "", application.Job.RequiredSkills ?? ""); }
+
+            var feedback = await _geminiService.GenerateFeedbackAsync(application.Candidate.FullName, application.Job.Title, score);
+
+            return Ok(new
+            {
+                applicationId,
+                candidateName = application.Candidate.FullName,
+                jobTitle = application.Job.Title,
+                matchScore = Math.Round(score, 1),
+                matchPercentage = $"{Math.Round(score, 1)}%",
+                feedback,
+                generatedAt = DateTime.UtcNow
+            });
+        }
     }
 
     // DTO for recommended jobs
